@@ -17,7 +17,9 @@ import {
     TWO_THOUSAND_TO_THREE_THOUSAND_CHALLENGES,
     THOUSANDS_SIMPLE_COMBINATION_CHALLENGES,
     THOUSANDS_CHALLENGES,
-    ALL_PHASES
+    ALL_PHASES,
+    DIDACTICIEL_STEP2_CHALLENGES,
+    getRandomDidacticielNumber,
 } from './types.ts';
 import {
     generateFeedback,
@@ -220,6 +222,16 @@ export const useStore = create<MachineState>((set, get) => ({
     introMaxAttempt: 0,
     showResponseButtons: false,
     selectedResponse: null,
+
+    // Simplified tutorial (didacticiel) state
+    didacticielStep1UpClicks: 0,
+    didacticielStep1DownClicks: 0,
+    didacticielStep2TargetIndex: 0,
+    didacticielStep2SuccessCount: 0,
+    didacticielStep3Target: 0,
+    didacticielStep3SuccessCount: 0,
+    showDidacticielQuitButton: false,
+    isInSimplifiedTutorial: false,
 
     // Callbacks pour effets visuels/sonores (à connecter côté UI)
     onIntroWelcomeTransition: null,
@@ -1099,16 +1111,23 @@ export const useStore = create<MachineState>((set, get) => ({
     },
 
     updateButtonVisibility: () => {
-        const { phase, columns } = get();
+        const { phase, columns, didacticielStep1UpClicks, didacticielStep1DownClicks } = get();
         const allColumnsUnlocked = columns.every(col => col.unlocked);
+
+        // Check if step 1 of didacticiel is complete
+        const isStep1Complete = didacticielStep1UpClicks >= 3 && didacticielStep1DownClicks >= 3;
 
         set({
             showUnlockButton: phase === 'normal' && !allColumnsUnlocked,
             showStartLearningButton: phase === 'done' || phase === 'celebration-before-thousands' || phase === 'celebration-thousands-complete' || phase === 'intro-learn-tens' || phase === 'intro-learn-hundreds' || phase === 'intro-learn-thousands',
-            showValidateLearningButton: phase === 'tutorial-challenge' || phase.startsWith('challenge-unit-') || phase === 'challenge-ten-to-twenty',
+            showValidateLearningButton: phase === 'tutorial-challenge' || phase.startsWith('challenge-unit-') || phase === 'challenge-ten-to-twenty' || 
+                (phase === 'didacticiel-step1-buttons' && isStep1Complete) || 
+                phase === 'didacticiel-step2-columns' || 
+                phase === 'didacticiel-step3-free-practice',
             showValidateTensButton: phase.startsWith('challenge-tens-'),
             showValidateHundredsButton: phase.startsWith('challenge-hundreds-') || phase === 'challenge-hundred-to-two-hundred' || phase === 'challenge-two-hundred-to-three-hundred',
             showValidateThousandsButton: phase.startsWith('challenge-thousands-') || phase === 'challenge-thousand-to-two-thousand' || phase === 'challenge-two-thousand-to-three-thousand' || phase === 'challenge-thousands-simple-combination',
+            showDidacticielQuitButton: phase === 'didacticiel-step3-free-practice',
         });
     },
 
@@ -1754,6 +1773,14 @@ export const useStore = create<MachineState>((set, get) => ({
         const totalNumber = columns.reduce((acc: number, col: Column, idx: number) => acc + col.value * Math.pow(10, idx), 0);
 
         if (isCountingAutomatically || isTransitioningToChallenge || pendingAutoCount) return;
+
+        // Handle simplified tutorial step 1 - button discovery
+        if (phase === 'didacticiel-step1-buttons') {
+            if (idx === 0) {
+                get().handleDidacticielStep1ButtonClick('up');
+            }
+            return;
+        }
 
         const isUnitsColumn = (i: number) => i === 0;
 
@@ -2542,6 +2569,14 @@ export const useStore = create<MachineState>((set, get) => ({
         const { sequenceFeedback } = get();
 
         if (isCountingAutomatically || pendingAutoCount) return;
+
+        // Handle simplified tutorial step 1 - button discovery
+        if (phase === 'didacticiel-step1-buttons') {
+            if (idx === 0) {
+                get().handleDidacticielStep1ButtonClick('down');
+            }
+            return;
+        }
 
         const isUnitsColumn = (i: number) => i === 0;
 
@@ -4031,6 +4066,40 @@ export const useStore = create<MachineState>((set, get) => ({
             case 'normal':
                 newInstruction = PHASE_INSTRUCTIONS['normal'];
                 break;
+            
+            // Simplified tutorial (didacticiel) phases
+            case 'didacticiel-step1-buttons': {
+                const { didacticielStep1UpClicks, didacticielStep1DownClicks } = get();
+                const step1Instructions = PHASE_INSTRUCTIONS['didacticiel-step1-buttons'];
+                if (didacticielStep1UpClicks >= 3 && didacticielStep1DownClicks >= 3) {
+                    newInstruction = step1Instructions.complete;
+                } else if (didacticielStep1UpClicks > 0 || didacticielStep1DownClicks > 0) {
+                    newInstruction = step1Instructions.progress(didacticielStep1UpClicks, didacticielStep1DownClicks);
+                } else {
+                    newInstruction = step1Instructions.initial;
+                }
+                break;
+            }
+            case 'didacticiel-step2-columns': {
+                const { didacticielStep2TargetIndex, didacticielStep2SuccessCount } = get();
+                const step2Instructions = PHASE_INSTRUCTIONS['didacticiel-step2-columns'];
+                const challenge = DIDACTICIEL_STEP2_CHALLENGES;
+                
+                if (didacticielStep2SuccessCount >= challenge.targets.length) {
+                    newInstruction = step2Instructions.final;
+                } else {
+                    const targetNumber = challenge.targets[didacticielStep2TargetIndex];
+                    newInstruction = step2Instructions.challenge(targetNumber, didacticielStep2TargetIndex);
+                }
+                break;
+            }
+            case 'didacticiel-step3-free-practice': {
+                const { didacticielStep3Target, didacticielStep3SuccessCount } = get();
+                const step3Instructions = PHASE_INSTRUCTIONS['didacticiel-step3-free-practice'];
+                newInstruction = step3Instructions.challenge(didacticielStep3Target, didacticielStep3SuccessCount);
+                break;
+            }
+            
             default:
                 newInstruction = PHASE_INSTRUCTIONS['default'];
         }
@@ -4572,6 +4641,250 @@ Tu veux :
         setTimeout(() => {
             get().goToNextPhase();
         }, 500);
+    },
+
+    // ============================================================================
+    // SIMPLIFIED TUTORIAL (DIDACTICIEL) ACTIONS
+    // ============================================================================
+
+    setDidacticielStep1UpClicks: (count) => set({ didacticielStep1UpClicks: count }),
+    setDidacticielStep1DownClicks: (count) => set({ didacticielStep1DownClicks: count }),
+    setDidacticielStep2TargetIndex: (index) => set({ didacticielStep2TargetIndex: index }),
+    setDidacticielStep2SuccessCount: (count) => set({ didacticielStep2SuccessCount: count }),
+    setDidacticielStep3Target: (target) => set({ didacticielStep3Target: target }),
+    setDidacticielStep3SuccessCount: (count) => set({ didacticielStep3SuccessCount: count }),
+    setShowDidacticielQuitButton: (show) => set({ showDidacticielQuitButton: show }),
+    setIsInSimplifiedTutorial: (isIn) => set({ isInSimplifiedTutorial: isIn }),
+
+    startSimplifiedTutorial: () => {
+        console.log('[startSimplifiedTutorial] Starting simplified tutorial');
+        
+        // Reset all tutorial state
+        const newCols = initialColumns.map(col => ({ ...col, value: 0, unlocked: true }));
+        // Only unlock units column initially for step 1
+        newCols[0].unlocked = true;
+        newCols[1].unlocked = false;
+        newCols[2].unlocked = false;
+        newCols[3].unlocked = false;
+        
+        set({
+            columns: newCols,
+            phase: 'didacticiel-step1-buttons',
+            isInSimplifiedTutorial: true,
+            didacticielStep1UpClicks: 0,
+            didacticielStep1DownClicks: 0,
+            didacticielStep2TargetIndex: 0,
+            didacticielStep2SuccessCount: 0,
+            didacticielStep3Target: getRandomDidacticielNumber(),
+            didacticielStep3SuccessCount: 0,
+            showDidacticielQuitButton: false,
+            feedback: "",
+        });
+        
+        setValue(0);
+        get().updateInstruction();
+    },
+
+    handleDidacticielStep1ButtonClick: (direction) => {
+        const { 
+            didacticielStep1UpClicks, 
+            didacticielStep1DownClicks, 
+            columns,
+            sequenceFeedback,
+            speakAndThen
+        } = get();
+        
+        const newCols = [...columns];
+        
+        if (direction === 'up') {
+            const newUpClicks = didacticielStep1UpClicks + 1;
+            set({ didacticielStep1UpClicks: newUpClicks });
+            
+            // Increment the unit column value
+            if (newCols[0].value < 9) {
+                newCols[0].value++;
+                set({ columns: newCols });
+                setValue(newCols[0].value);
+            }
+            
+            if (newUpClicks === 3 && didacticielStep1DownClicks < 3) {
+                speakAndThen("Parfait ! Tu as cliqué 3 fois sur Haut ! Maintenant clique 3 fois sur Bas !");
+            }
+        } else if (direction === 'down') {
+            const newDownClicks = didacticielStep1DownClicks + 1;
+            set({ didacticielStep1DownClicks: newDownClicks });
+            
+            // Decrement the unit column value
+            if (newCols[0].value > 0) {
+                newCols[0].value--;
+                set({ columns: newCols });
+                setValue(newCols[0].value);
+            }
+            
+            if (newDownClicks === 3 && didacticielStep1UpClicks >= 3) {
+                // Step 1 complete - show validate message
+                sequenceFeedback(
+                    "Bravo ! Tu as bien compris les boutons Haut et Bas !",
+                    "Clique sur VALIDER pour passer à l'étape suivante.",
+                    () => {
+                        set({ showValidateLearningButton: true });
+                    }
+                );
+            }
+        }
+        
+        // Update progress feedback
+        const currentUp = get().didacticielStep1UpClicks;
+        const currentDown = get().didacticielStep1DownClicks;
+        if (currentUp < 3 || currentDown < 3) {
+            set({ feedback: `Haut: ${currentUp}/3 | Bas: ${currentDown}/3` });
+        }
+    },
+
+    handleDidacticielStep2Validate: () => {
+        const { 
+            columns, 
+            didacticielStep2TargetIndex, 
+            didacticielStep2SuccessCount,
+            sequenceFeedback,
+            speakAndThen
+        } = get();
+        
+        // Get current target
+        const challenge = DIDACTICIEL_STEP2_CHALLENGES;
+        const targetNumber = challenge.targets[didacticielStep2TargetIndex];
+        
+        // Calculate current value from columns
+        const currentValue = columns.reduce((acc, col, idx) => acc + col.value * Math.pow(10, idx), 0);
+        
+        if (currentValue === targetNumber) {
+            // Success!
+            sendCorrectValue();
+            const newSuccessCount = didacticielStep2SuccessCount + 1;
+            set({ didacticielStep2SuccessCount: newSuccessCount });
+            
+            if (didacticielStep2TargetIndex + 1 >= challenge.targets.length) {
+                // Step 2 complete - move to step 3
+                sequenceFeedback(
+                    "Félicitations ! Tu as complété tous les défis de cette étape !",
+                    "Tu comprends maintenant comment fonctionnent les colonnes. Passons aux exercices libres !",
+                    () => {
+                        const newCols = initialColumns.map(col => ({ ...col, value: 0, unlocked: true }));
+                        set({
+                            columns: newCols,
+                            phase: 'didacticiel-step3-free-practice',
+                            didacticielStep3Target: getRandomDidacticielNumber(),
+                            showDidacticielQuitButton: true,
+                        });
+                        setValue(0);
+                        get().updateInstruction();
+                    }
+                );
+            } else {
+                // Next target in step 2
+                sendNextGoal();
+                const nextTarget = challenge.targets[didacticielStep2TargetIndex + 1];
+                const newCols = initialColumns.map(col => ({ ...col, value: 0, unlocked: true }));
+                set({
+                    columns: newCols,
+                    didacticielStep2TargetIndex: didacticielStep2TargetIndex + 1,
+                });
+                setValue(0);
+                speakAndThen(`Excellent ! Tu as réussi ${newSuccessCount}/3 défis ! Maintenant affiche ${nextTarget} !`);
+                get().updateInstruction();
+            }
+        } else {
+            // Incorrect
+            sendWrongValue();
+            const diff = Math.abs(currentValue - targetNumber);
+            let hint = "";
+            if (diff <= 10) {
+                hint = "Tu y es presque !";
+            } else if (currentValue < targetNumber) {
+                hint = "Le nombre est PLUS GRAND que ça !";
+            } else {
+                hint = "Le nombre est PLUS PETIT que ça !";
+            }
+            speakAndThen(`Ce n'est pas tout à fait ça. ${hint} Essaie encore !`);
+        }
+    },
+
+    handleDidacticielStep3Validate: () => {
+        const { 
+            columns, 
+            didacticielStep3Target, 
+            didacticielStep3SuccessCount,
+            speakAndThen
+        } = get();
+        
+        // Calculate current value from columns
+        const currentValue = columns.reduce((acc, col, idx) => acc + col.value * Math.pow(10, idx), 0);
+        
+        if (currentValue === didacticielStep3Target) {
+            // Success!
+            sendCorrectValue();
+            const newSuccessCount = didacticielStep3SuccessCount + 1;
+            set({ didacticielStep3SuccessCount: newSuccessCount });
+            
+            // Get next random target
+            const nextTarget = getRandomDidacticielNumber();
+            const newCols = initialColumns.map(col => ({ ...col, value: 0, unlocked: true }));
+            
+            set({
+                columns: newCols,
+                didacticielStep3Target: nextTarget,
+            });
+            setValue(0);
+            
+            speakAndThen(`Bravo ! ${newSuccessCount} exercice${newSuccessCount > 1 ? 's' : ''} réussi${newSuccessCount > 1 ? 's' : ''} ! Voici un nouveau nombre : ${nextTarget} !`);
+            get().updateInstruction();
+        } else {
+            // Incorrect
+            sendWrongValue();
+            const diff = Math.abs(currentValue - didacticielStep3Target);
+            let hint = "";
+            if (diff <= 10) {
+                hint = "Tu y es presque !";
+            } else if (currentValue < didacticielStep3Target) {
+                hint = "Le nombre est PLUS GRAND que ça !";
+            } else {
+                hint = "Le nombre est PLUS PETIT que ça !";
+            }
+            speakAndThen(`Ce n'est pas tout à fait ça. ${hint} Essaie encore !`);
+        }
+    },
+
+    quitDidacticiel: () => {
+        const { didacticielStep3SuccessCount, sequenceFeedback } = get();
+        
+        sequenceFeedback(
+            `Merci d'avoir utilisé le didacticiel ! Tu as réussi ${didacticielStep3SuccessCount} exercice${didacticielStep3SuccessCount > 1 ? 's' : ''} !`,
+            "Tu peux maintenant utiliser la machine librement. À bientôt !",
+            () => {
+                const newCols = initialColumns.map(col => ({ ...col, value: 0, unlocked: true }));
+                set({
+                    columns: newCols,
+                    phase: 'normal',
+                    isInSimplifiedTutorial: false,
+                    showDidacticielQuitButton: false,
+                });
+                setValue(0);
+                get().updateInstruction();
+            }
+        );
+    },
+
+    resetDidacticiel: () => {
+        set({
+            didacticielStep1UpClicks: 0,
+            didacticielStep1DownClicks: 0,
+            didacticielStep2TargetIndex: 0,
+            didacticielStep2SuccessCount: 0,
+            didacticielStep3Target: getRandomDidacticielNumber(),
+            didacticielStep3SuccessCount: 0,
+            showDidacticielQuitButton: false,
+            isInSimplifiedTutorial: false,
+        });
     },
 }));
 useStore.subscribe(
