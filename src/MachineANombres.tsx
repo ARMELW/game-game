@@ -3,7 +3,6 @@ import { useStore, initialColumns } from "./store.ts";
 import { UnityGame } from "./components/UnityGame";
 import { parse, useUnity } from "./hooks/useUnity";
 import { UI_MESSAGES } from "./instructions.ts";
-import { DIDACTICIEL_REQUIRED_CLICKS } from "./types.ts";
 
 
 function formatNumber(num: number, length = 4) {
