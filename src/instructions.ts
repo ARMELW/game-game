@@ -120,6 +120,38 @@ export const PHASE_INSTRUCTIONS = {
   
   // Default
   'default': "Prépare-toi pour l'aventure des nombres !",
+
+  // ============================================================================
+  // SIMPLIFIED TUTORIAL (DIDACTICIEL) - 3 PHASES
+  // ============================================================================
+  
+  // Étape 1: Découverte des boutons
+  'didacticiel-step1-buttons': {
+    initial: "Bienvenue dans le didacticiel ! Tu vois ce chiffre dans la colonne Unité ? Utilise les boutons Haut (▲) et Bas (▼) pour le faire changer ! Clique 3 fois sur Haut puis 3 fois sur Bas.",
+    progress: (upClicks: number, downClicks: number) => 
+      `Parfait ! Tu as cliqué ${upClicks} fois sur Haut et ${downClicks} fois sur Bas. Continue !`,
+    complete: "Bravo ! Tu as bien compris les boutons ! Clique maintenant sur VALIDER pour passer à l'étape suivante.",
+  },
+  
+  // Étape 2: Compréhension des colonnes
+  'didacticiel-step2-columns': {
+    intro: "Voici les 4 colonnes de la machine : Unité (droite), Dizaine, Centaine, et Millième (gauche). Chaque colonne a une valeur différente !",
+    challenge: (targetNumber: number, currentIndex: number) => 
+      `Défi ${currentIndex + 1}/3 : Affiche le nombre ${targetNumber} en remplissant les colonnes une par une, en commençant par l'Unité. Puis clique sur VALIDER !`,
+    success: (completedCount: number) => 
+      `Excellent ! Tu as réussi ${completedCount}/3 défis ! ${completedCount < 3 ? 'Continue avec le prochain nombre !' : 'Tu maîtrises les colonnes !'}`,
+    final: "Félicitations ! Tu as complété tous les défis de cette étape ! Tu comprends maintenant comment fonctionnent les colonnes.",
+  },
+  
+  // Étape 3: Exercices libres
+  'didacticiel-step3-free-practice': {
+    intro: "Mode Exercices Libres ! Je vais te proposer des nombres aléatoires. Continue à t'exercer autant que tu veux !",
+    challenge: (targetNumber: number, successCount: number) => 
+      `Affiche le nombre ${targetNumber}. Tu as déjà réussi ${successCount} exercice${successCount > 1 ? 's' : ''} ! Clique sur VALIDER quand tu es prêt, ou sur QUITTER pour terminer.`,
+    success: (totalSuccess: number) => 
+      `Bravo ! ${totalSuccess} exercice${totalSuccess > 1 ? 's' : ''} réussi${totalSuccess > 1 ? 's' : ''} ! Voici un nouveau nombre !`,
+    quit: "Merci d'avoir utilisé le didacticiel ! Tu peux maintenant utiliser la machine librement.",
+  },
 } as const;
 
 // ============================================================================
@@ -135,37 +167,44 @@ export const CHALLENGE_INSTRUCTIONS = {
     
 Essaie de le faire ! Si tu te trompes, ce n'est pas grave, tu apprendras ce qu'il se passe !`,
   
-  units: (challengeIndex: number, targetNumber: number, successCount: number, totalTargets: number) =>
+  units: (_challengeIndex: number, targetNumber: number, _successCount: number, _totalTargets: number) =>
     ` Affiche ${targetNumber} puis clique sur VALIDER !`,
   
-  tenToTwenty: (targetNumber: number, successCount: number, totalTargets: number) =>
+  tenToTwenty: (targetNumber: number, _successCount: number, _totalTargets: number) =>
     `Affiche ${targetNumber} puis clique sur VALIDER !`,
   
-  tens: (challengeIndex: number, targetNumber: number, successCount: number, totalTargets: number) =>
+  tens: (_challengeIndex: number, targetNumber: number, _successCount: number, _totalTargets: number) =>
     `Affiche ${targetNumber} puis clique sur VALIDER !`,
   
-  hundredToTwoHundred: (targetNumber: number, successCount: number, totalTargets: number) =>
+  hundredToTwoHundred: (targetNumber: number, _successCount: number, _totalTargets: number) =>
     `Mini-défi 100-200 : Affiche ${targetNumber} puis clique sur VALIDER !`,
   
-  twoHundredToThreeHundred: (targetNumber: number, successCount: number, totalTargets: number) =>
+  twoHundredToThreeHundred: (targetNumber: number, _successCount: number, _totalTargets: number) =>
     `Mini-défi 200-300 : Affiche ${targetNumber} puis clique sur VALIDER !`,
   
-  hundreds: (challengeIndex: number, targetNumber: number, successCount: number, totalTargets: number) =>
+  hundreds: (_challengeIndex: number, targetNumber: number, _successCount: number, _totalTargets: number) =>
     `Affiche ${targetNumber} puis clique sur VALIDER !`,
   
-  thousandToTwoThousand: (targetNumber: number, successCount: number, totalTargets: number) =>
+  thousandToTwoThousand: (targetNumber: number, _successCount: number, _totalTargets: number) =>
     `Mini-défi 1000-2000 ! Affiche ${targetNumber} puis clique sur VALIDER !`,
   
-  twoThousandToThreeThousand: (targetNumber: number, successCount: number, totalTargets: number) =>
+  twoThousandToThreeThousand: (targetNumber: number, _successCount: number, _totalTargets: number) =>
     `Mini-défi 2000-3000 ! Affiche ${targetNumber} puis clique sur VALIDER !`,
   
-  thousandsSimpleCombination: (targetNumber: number, successCount: number, totalTargets: number) =>
+  thousandsSimpleCombination: (targetNumber: number, _successCount: number, _totalTargets: number) =>
     `Défi nombres RONDS ! Affiche ${targetNumber} puis clique sur VALIDER !`,
   
-  thousands: (challengeIndex: number, targetNumber: number, successCount: number, totalTargets: number) => {
+  thousands: (challengeIndex: number, targetNumber: number, _successCount: number, _totalTargets: number) => {
     const difficultyNames = ['FACILE', 'MOYEN', 'DIFFICILE'];
     return `DÉFI ${challengeIndex + 1} (${difficultyNames[challengeIndex]}) : Affiche ${targetNumber} puis clique sur VALIDER !`;
   },
+
+  // Simplified tutorial (didacticiel) challenge instructions
+  didacticielStep2: (targetNumber: number, currentIndex: number) =>
+    `📊 Défi ${currentIndex + 1}/3 : Affiche ${targetNumber}. Commence par l'Unité, puis Dizaine, Centaine, Millième !`,
+  
+  didacticielStep3: (targetNumber: number, successCount: number) =>
+    `🎯 Exercice libre : Affiche ${targetNumber} ! (${successCount} réussi${successCount > 1 ? 's' : ''})`,
 } as const;
 
 // ============================================================================
@@ -238,6 +277,31 @@ export const UI_MESSAGES = {
   },
   
   assistantTitle: "Assistant Pédagogique",
+
+  // Simplified tutorial (didacticiel) UI messages
+  didacticiel: {
+    startButton: "🎓 Commencer le Didacticiel",
+    quitButton: "🚪 Quitter le Didacticiel",
+    validateButton: "✓ Valider",
+    nextButton: "➡️ Suivant",
+    step1Title: "Étape 1 : Découverte des boutons",
+    step2Title: "Étape 2 : Compréhension des colonnes",
+    step3Title: "Étape 3 : Exercices libres",
+    columnNames: {
+      unit: "Unité",
+      ten: "Dizaine",
+      hundred: "Centaine",
+      thousand: "Millième",
+    },
+    progress: {
+      step1: (upClicks: number, downClicks: number) => 
+        `Haut: ${upClicks}/3 | Bas: ${downClicks}/3`,
+      step2: (current: number, total: number) => 
+        `Défi ${current}/${total}`,
+      step3: (successCount: number) => 
+        `${successCount} exercice${successCount > 1 ? 's' : ''} réussi${successCount > 1 ? 's' : ''}`,
+    },
+  },
 } as const;
 
 // ============================================================================

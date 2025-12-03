@@ -1,8 +1,9 @@
 import { useEffect, useCallback, useMemo, useState, useRef } from "react";
-import { useStore } from "./store.ts";
+import { useStore, initialColumns } from "./store.ts";
 import { UnityGame } from "./components/UnityGame";
 import { parse, useUnity } from "./hooks/useUnity";
 import { UI_MESSAGES } from "./instructions.ts";
+import { DIDACTICIEL_REQUIRED_CLICKS } from "./types.ts";
 
 
 function formatNumber(num: number, length = 4) {
@@ -61,11 +62,20 @@ function MachineANombres() {
     introMaxAttempt: _introMaxAttempt,
     // Phase navigation functions
     goToNextPhase,
-    goToPreviousPhase,
     getCurrentPhaseIndex,
     // Unity loading state setters
     setUnityLoaded,
     setUnityLoadingProgression,
+    // Simplified tutorial (didacticiel) state and handlers
+    didacticielStep1UpClicks,
+    didacticielStep1DownClicks,
+    didacticielStep2TargetIndex,
+    didacticielStep3SuccessCount,
+    showDidacticielQuitButton,
+    startSimplifiedTutorial,
+    handleDidacticielStep2Validate,
+    handleDidacticielStep3Validate,
+    quitDidacticiel,
   } = useStore();
 
   // Unity integration
@@ -97,6 +107,26 @@ function MachineANombres() {
     setTimeout(() => {
       validationInProgressRef.current = false;
     }, 100);
+    
+    // Handle simplified tutorial (didacticiel) phases
+    if (phase === "didacticiel-step1-buttons") {
+      // Step 1 complete - move to step 2
+      if (didacticielStep1UpClicks >= 3 && didacticielStep1DownClicks >= 3) {
+        // Transition to step 2
+        const { setPhase, setColumns } = useStore.getState();
+        const newCols = initialColumns.map(col => ({ ...col, value: 0, unlocked: true }));
+        setColumns(newCols);
+        setPhase('didacticiel-step2-columns');
+      }
+      return;
+    } else if (phase === "didacticiel-step2-columns") {
+      handleDidacticielStep2Validate();
+      return;
+    } else if (phase === "didacticiel-step3-free-practice") {
+      handleDidacticielStep3Validate();
+      return;
+    }
+    
     if (phase === "challenge-ten-to-twenty") {
       handleValidateTenToTwenty();
     } else if (phase === 'tutorial-challenge') {
@@ -139,7 +169,7 @@ function MachineANombres() {
       // Not a challenge phase - provide feedback
       setFeedback("Il n'y a pas de défi en ce moment ! Suis les instructions ! 👀");
     }
-  }, [phase, handleValidateTenToTwenty, handleValidateTutorialChallenge, handleValidateLearning, handleValidateTens, handleValidateHundredToTwoHundred, handleValidateTwoHundredToThreeHundred, handleValidateHundreds, handleValidateThousandToTwoThousand, handleValidateTwoThousandToThreeThousand, handleValidateThousandsSimpleCombination, handleValidateThousands, setFeedback]);
+  }, [phase, didacticielStep1UpClicks, didacticielStep1DownClicks, handleDidacticielStep2Validate, handleDidacticielStep3Validate, handleValidateTenToTwenty, handleValidateTutorialChallenge, handleValidateLearning, handleValidateTens, handleValidateHundredToTwoHundred, handleValidateTwoHundredToThreeHundred, handleValidateHundreds, handleValidateThousandToTwoThousand, handleValidateTwoThousandToThreeThousand, handleValidateThousandsSimpleCombination, handleValidateThousands, setFeedback]);
 
   // Handle messages from Unity (button clicks)
   const handleUnityMessage = useCallback(
@@ -288,26 +318,52 @@ function MachineANombres() {
     return (
       <div className="font-sans flex flex-col justify-center items-center h-screen text-[22px] text-sky-500 bg-slate-100">
         <div className="mb-8">Bienvenue dans la machine à compter !</div>
-        <button
-          className="text-[20px] px-10 py-4 bg-gradient-to-br from-sky-500 to-sky-700 text-white border-none rounded-xl cursor-pointer font-bold shadow-md transition-all duration-200"
-          onClick={async () => {
-            // Débloquer l'AudioContext si besoin (compatibilité Chrome/Safari)
-            const WindowWithWebkit = window as Window & { webkitAudioContext?: typeof AudioContext };
-            const AudioCtx = window.AudioContext || WindowWithWebkit.webkitAudioContext;
-            if (AudioCtx) {
-              try {
-                const ctx = new AudioCtx();
-                if (ctx.state === 'suspended') {
-                  await ctx.resume();
-                }
-                ctx.close();
-              } catch { /* ignore */ }
-            }
-            setAudioUnlocked(true);
-          }}
-        >
-          Commencer
-        </button>
+        <div className="flex flex-col gap-4">
+          <button
+            className="text-[20px] px-10 py-4 bg-gradient-to-br from-sky-500 to-sky-700 text-white border-none rounded-xl cursor-pointer font-bold shadow-md transition-all duration-200"
+            onClick={async () => {
+              // Débloquer l'AudioContext si besoin (compatibilité Chrome/Safari)
+              const WindowWithWebkit = window as Window & { webkitAudioContext?: typeof AudioContext };
+              const AudioCtx = window.AudioContext || WindowWithWebkit.webkitAudioContext;
+              if (AudioCtx) {
+                try {
+                  const ctx = new AudioCtx();
+                  if (ctx.state === 'suspended') {
+                    await ctx.resume();
+                  }
+                  ctx.close();
+                } catch { /* ignore */ }
+              }
+              setAudioUnlocked(true);
+            }}
+          >
+            Commencer
+          </button>
+          <button
+            className="text-[18px] px-8 py-3 bg-gradient-to-br from-emerald-500 to-emerald-700 text-white border-none rounded-xl cursor-pointer font-bold shadow-md transition-all duration-200"
+            onClick={async () => {
+              // Débloquer l'AudioContext si besoin (compatibilité Chrome/Safari)
+              const WindowWithWebkit = window as Window & { webkitAudioContext?: typeof AudioContext };
+              const AudioCtx = window.AudioContext || WindowWithWebkit.webkitAudioContext;
+              if (AudioCtx) {
+                try {
+                  const ctx = new AudioCtx();
+                  if (ctx.state === 'suspended') {
+                    await ctx.resume();
+                  }
+                  ctx.close();
+                } catch { /* ignore */ }
+              }
+              setAudioUnlocked(true);
+              // Start simplified tutorial after audio is unlocked
+              setTimeout(() => {
+                startSimplifiedTutorial();
+              }, 100);
+            }}
+          >
+            🎓 Didacticiel Simplifié (3 étapes)
+          </button>
+        </div>
       </div>
     );
   }
@@ -591,6 +647,34 @@ function MachineANombres() {
               <div className="px-3 py-2 bg-gradient-to-br from-violet-500 to-violet-700 rounded-md text-center text-[13px] font-bold text-white shadow">
                 Regarde bien comment on construit le nombre {currentTarget} !
               </div>
+            )}
+            {/* Simplified tutorial (didacticiel) progress indicators */}
+            {phase === 'didacticiel-step1-buttons' && (
+              <div className="px-3 py-2 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-md text-center text-[13px] font-bold text-white shadow">
+                <div className="text-[11px] mb-1">📚 Étape 1 : Découverte des boutons</div>
+                <div>Haut: {didacticielStep1UpClicks}/3 | Bas: {didacticielStep1DownClicks}/3</div>
+              </div>
+            )}
+            {phase === 'didacticiel-step2-columns' && (
+              <div className="px-3 py-2 bg-gradient-to-br from-blue-500 to-blue-700 rounded-md text-center text-[13px] font-bold text-white shadow">
+                <div className="text-[11px] mb-1">📊 Étape 2 : Compréhension des colonnes</div>
+                <div>Défi {didacticielStep2TargetIndex + 1}/3</div>
+              </div>
+            )}
+            {phase === 'didacticiel-step3-free-practice' && (
+              <div className="px-3 py-2 bg-gradient-to-br from-amber-500 to-amber-700 rounded-md text-center text-[13px] font-bold text-white shadow">
+                <div className="text-[11px] mb-1">🎯 Étape 3 : Exercices libres</div>
+                <div>{didacticielStep3SuccessCount} exercice{didacticielStep3SuccessCount > 1 ? 's' : ''} réussi{didacticielStep3SuccessCount > 1 ? 's' : ''}</div>
+              </div>
+            )}
+            {/* Quit button for simplified tutorial step 3 */}
+            {showDidacticielQuitButton && (
+              <button
+                onClick={quitDidacticiel}
+                className="text-[14px] px-4 py-2 bg-gradient-to-br from-red-500 to-red-700 text-white border-none rounded-md cursor-pointer font-bold shadow transition-all duration-200 mt-2"
+              >
+                🚪 Quitter le Didacticiel
+              </button>
             )}
           </div>
         </div>

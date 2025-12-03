@@ -78,7 +78,11 @@ export type Phase =
     | 'celebration-thousands-complete'
     | 'normal'
     | 'done'
-    | 'learn-units';
+    | 'learn-units'
+    // Simplified tutorial phases (3 phases)
+    | 'didacticiel-step1-buttons'      // Étape 1: Découverte des boutons
+    | 'didacticiel-step2-columns'      // Étape 2: Compréhension des colonnes
+    | 'didacticiel-step3-free-practice'; // Étape 3: Exercices libres
 
 // Phase completion status
 export type PhaseCompletionStatus = 'not-started' | 'in-progress' | 'completed';
@@ -147,6 +151,17 @@ export const ALL_PHASES: readonly Phase[] = [
   'celebration-thousands-complete',
   'normal',
   'done',
+  // Simplified tutorial phases (3 phases)
+  'didacticiel-step1-buttons',
+  'didacticiel-step2-columns',
+  'didacticiel-step3-free-practice',
+] as const;
+
+// Simplified tutorial phases for the 3-step didacticiel
+export const SIMPLIFIED_TUTORIAL_PHASES: readonly Phase[] = [
+  'didacticiel-step1-buttons',
+  'didacticiel-step2-columns',
+  'didacticiel-step3-free-practice',
 ] as const;
 
 export type Challenge = {
@@ -155,6 +170,9 @@ export type Challenge = {
 };
 
 export const FEEDBACK_DELAY = 2500;
+
+// Simplified tutorial constants
+export const DIDACTICIEL_REQUIRED_CLICKS = 3; // Number of clicks required for step 1 (both up and down)
 
 export const TUTORIAL_CHALLENGE: Challenge = {
   phase: 'tutorial-challenge',
@@ -208,6 +226,27 @@ export const THOUSANDS_CHALLENGES: Challenge[] = [
   { phase: 'challenge-thousands-2', targets: [1234, 2345, 3456, 1500, 2750, 4321, 5678] }, // Moyen
   { phase: 'challenge-thousands-3', targets: [1999, 2468, 3579, 5432, 6789, 7890, 8765] }  // Difficile
 ];
+
+// ============================================================================
+// SIMPLIFIED TUTORIAL (DIDACTICIEL) - 3 PHASES
+// ============================================================================
+
+// Step 2: Column understanding challenges - 3 numbers to fill
+export const DIDACTICIEL_STEP2_CHALLENGES: Challenge = {
+  phase: 'didacticiel-step2-columns',
+  targets: [1234, 5678, 9012] // 3 numbers for step 2
+};
+
+// Step 3: Free practice - random numbers
+export const DIDACTICIEL_STEP3_NUMBERS = [
+  1357, 2468, 3579, 4680, 5791, 6802, 7913, 8024, 9135, 1246,
+  2357, 3468, 4579, 5680, 6791, 7802, 8913, 9024, 1235, 2346
+];
+
+// Helper function to get a random number for step 3
+export function getRandomDidacticielNumber(): number {
+  return DIDACTICIEL_STEP3_NUMBERS[Math.floor(Math.random() * DIDACTICIEL_STEP3_NUMBERS.length)];
+}
 
 export interface MachineState {
     columns: Column[];
@@ -288,6 +327,16 @@ export interface MachineState {
   introMaxAttempt: number;
   showResponseButtons: boolean;
   selectedResponse: string | null;
+
+  // Simplified tutorial (didacticiel) state
+  didacticielStep1UpClicks: number;      // Count of Up button clicks in step 1
+  didacticielStep1DownClicks: number;    // Count of Down button clicks in step 1
+  didacticielStep2TargetIndex: number;   // Current target index in step 2 (0, 1, 2)
+  didacticielStep2SuccessCount: number;  // Number of successful completions in step 2
+  didacticielStep3Target: number;        // Current random target in step 3
+  didacticielStep3SuccessCount: number;  // Total successes in step 3
+  showDidacticielQuitButton: boolean;    // Show quit button in step 3
+  isInSimplifiedTutorial: boolean;       // Whether we are in the simplified 3-phase tutorial
 
   // Callback pour effet visuel/sonore lors de la transition intro-welcome
   onIntroWelcomeTransition?: (() => void) | null;
@@ -425,4 +474,20 @@ export interface MachineState {
     isPhaseComplete: (phase: Phase) => boolean;
     setAutoTransitionEnabled: (enabled: boolean) => void;
     checkAndTransitionToNextPhase: () => void;
+
+    // Simplified tutorial (didacticiel) actions
+    setDidacticielStep1UpClicks: (count: number) => void;
+    setDidacticielStep1DownClicks: (count: number) => void;
+    setDidacticielStep2TargetIndex: (index: number) => void;
+    setDidacticielStep2SuccessCount: (count: number) => void;
+    setDidacticielStep3Target: (target: number) => void;
+    setDidacticielStep3SuccessCount: (count: number) => void;
+    setShowDidacticielQuitButton: (show: boolean) => void;
+    setIsInSimplifiedTutorial: (isIn: boolean) => void;
+    startSimplifiedTutorial: () => void;
+    handleDidacticielStep1ButtonClick: (direction: 'up' | 'down') => void;
+    handleDidacticielStep2Validate: () => void;
+    handleDidacticielStep3Validate: () => void;
+    quitDidacticiel: () => void;
+    resetDidacticiel: () => void;
 }
