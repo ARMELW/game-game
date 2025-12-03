@@ -131,40 +131,40 @@ export const CHALLENGE_INSTRUCTIONS = {
   tutorialChallenge: (targetNumber: number) =>
     `
     Maintenant on va apprendre le challenge 
-  PREMIER DÉFI : Affiche le nombre **${targetNumber}** puis clique sur VALIDER ! 
+  PREMIER DÉFI : Affiche le nombre ${targetNumber} puis clique sur VALIDER ! 
     
 Essaie de le faire ! Si tu te trompes, ce n'est pas grave, tu apprendras ce qu'il se passe !`,
   
   units: (challengeIndex: number, targetNumber: number, successCount: number, totalTargets: number) =>
-    `DÉFI ${challengeIndex + 1} : Affiche **${targetNumber}** puis clique sur VALIDER ! (${successCount}/${totalTargets})`,
+    ` Affiche ${targetNumber} puis clique sur VALIDER !`,
   
   tenToTwenty: (targetNumber: number, successCount: number, totalTargets: number) =>
-    `Mini-défi : Affiche **${targetNumber}** puis clique sur VALIDER ! (${successCount}/${totalTargets})`,
+    `Affiche ${targetNumber} puis clique sur VALIDER !`,
   
   tens: (challengeIndex: number, targetNumber: number, successCount: number, totalTargets: number) =>
-    `DÉFI ${challengeIndex + 1} : Affiche **${targetNumber}** puis clique sur VALIDER ! (${successCount}/${totalTargets})`,
+    `Affiche ${targetNumber} puis clique sur VALIDER !`,
   
   hundredToTwoHundred: (targetNumber: number, successCount: number, totalTargets: number) =>
-    `Mini-défi 100-200 : Affiche **${targetNumber}** puis clique sur VALIDER ! (${successCount}/${totalTargets})`,
+    `Mini-défi 100-200 : Affiche ${targetNumber} puis clique sur VALIDER !`,
   
   twoHundredToThreeHundred: (targetNumber: number, successCount: number, totalTargets: number) =>
-    `Mini-défi 200-300 : Affiche **${targetNumber}** puis clique sur VALIDER ! (${successCount}/${totalTargets})`,
+    `Mini-défi 200-300 : Affiche ${targetNumber} puis clique sur VALIDER !`,
   
   hundreds: (challengeIndex: number, targetNumber: number, successCount: number, totalTargets: number) =>
-    `DÉFI ${challengeIndex + 1} : Affiche **${targetNumber}** puis clique sur VALIDER ! (${successCount}/${totalTargets})`,
+    `Affiche ${targetNumber} puis clique sur VALIDER !`,
   
   thousandToTwoThousand: (targetNumber: number, successCount: number, totalTargets: number) =>
-    `Mini-défi 1000-2000 ! Affiche **${targetNumber}** puis clique sur VALIDER ! (${successCount}/${totalTargets})`,
+    `Mini-défi 1000-2000 ! Affiche ${targetNumber} puis clique sur VALIDER !`,
   
   twoThousandToThreeThousand: (targetNumber: number, successCount: number, totalTargets: number) =>
-    `Mini-défi 2000-3000 ! Affiche **${targetNumber}** puis clique sur VALIDER ! (${successCount}/${totalTargets})`,
+    `Mini-défi 2000-3000 ! Affiche ${targetNumber} puis clique sur VALIDER !`,
   
   thousandsSimpleCombination: (targetNumber: number, successCount: number, totalTargets: number) =>
-    `Défi nombres RONDS ! Affiche **${targetNumber}** puis clique sur VALIDER ! (${successCount}/${totalTargets})`,
+    `Défi nombres RONDS ! Affiche ${targetNumber} puis clique sur VALIDER !`,
   
   thousands: (challengeIndex: number, targetNumber: number, successCount: number, totalTargets: number) => {
     const difficultyNames = ['FACILE', 'MOYEN', 'DIFFICILE'];
-    return `DÉFI ${challengeIndex + 1} (${difficultyNames[challengeIndex]}) : Affiche **${targetNumber}** puis clique sur VALIDER ! (${successCount}/${totalTargets})`;
+    return `DÉFI ${challengeIndex + 1} (${difficultyNames[challengeIndex]}) : Affiche ${targetNumber} puis clique sur VALIDER !`;
   },
 } as const;
 

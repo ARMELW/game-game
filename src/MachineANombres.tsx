@@ -286,31 +286,10 @@ function MachineANombres() {
   // Rendu conditionnel de l'écran de démarrage
   if (showStartScreen) {
     return (
-      <div style={{
-        fontFamily: 'sans-serif',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        fontSize: 22,
-        color: '#0ea5e9',
-        background: '#f0f4f8',
-      }}>
-        <div style={{ marginBottom: 32 }}>Bienvenue dans la machine à compter !</div>
+      <div className="font-sans flex flex-col justify-center items-center h-screen text-[22px] text-sky-500 bg-slate-100">
+        <div className="mb-8">Bienvenue dans la machine à compter !</div>
         <button
-          style={{
-            fontSize: 20,
-            padding: '16px 40px',
-            background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 12,
-            cursor: 'pointer',
-            fontWeight: 'bold',
-            boxShadow: '0 4px 8px rgba(14, 165, 233, 0.3)',
-            transition: 'all 0.2s ease',
-          }}
+          className="text-[20px] px-10 py-4 bg-gradient-to-br from-sky-500 to-sky-700 text-white border-none rounded-xl cursor-pointer font-bold shadow-md transition-all duration-200"
           onClick={async () => {
             // Débloquer l'AudioContext si besoin (compatibilité Chrome/Safari)
             const WindowWithWebkit = window as Window & { webkitAudioContext?: typeof AudioContext };
@@ -329,902 +308,315 @@ function MachineANombres() {
         >
           Commencer
         </button>
-        <div style={{ marginTop: 24, fontSize: 16, color: '#64748b' }}>
-          (Clique sur “Commencer” pour activer le son)
-        </div>
       </div>
     );
   }
   return (
-    <div
-      style={{
-        fontFamily: "sans-serif",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "flex-start",
-        gap: 24,
-        margin: "2rem auto",
-        flexWrap: "wrap",
-        padding: "0 1rem",
-        maxWidth: 900,
-      }}
-    >
-      {/* Machine principale */}
-      <div
-        style={{
-          maxWidth: 450,
-          width: "100%",
-          padding: 16,
-          background: "#fff",
-          borderRadius: 4,
-          border: "1px solid #cbd5e1",
-        }}
-      >
-        <p>{phase}</p>
-        <p>{currentTarget}</p>
-        <div
-          style={{
-            width: "100%",
-            height: "450px",
-            border: "2px solid #cbd5e1",
-            borderRadius: 8,
-            overflow: "hidden",
-            background: "#000",
-            marginBottom: 16,
-          }}
-        >
-          <UnityGame />
-        </div>
-
-        {/* Phase Navigation Buttons */}
-        <div style={{ 
-          marginTop: 16, 
-          marginBottom: 16, 
-          display: "flex", 
-          justifyContent: "space-between", 
-          alignItems: "center",
-          gap: 8,
-          padding: "12px",
-          background: "#f8fafc",
-          borderRadius: 8,
-          border: "1px solid #e2e8f0",
-        }}>
-          <button
-            onClick={goToPreviousPhase}
-            disabled={getCurrentPhaseIndex() <= 0}
-            style={{
-              fontSize: 14,
-              padding: "8px 16px",
-              background: getCurrentPhaseIndex() <= 0 
-                ? "#e2e8f0" 
-                : "linear-gradient(135deg, #64748b 0%, #475569 100%)",
-              color: getCurrentPhaseIndex() <= 0 ? "#94a3b8" : "#fff",
-              border: "none",
-              borderRadius: 6,
-              cursor: getCurrentPhaseIndex() <= 0 ? "not-allowed" : "pointer",
-              fontWeight: "bold",
-              boxShadow: getCurrentPhaseIndex() <= 0 
-                ? "none" 
-                : "0 2px 4px rgba(100, 116, 139, 0.3)",
-              transition: "all 0.2s ease",
-            }}
-            onMouseEnter={(e) => {
-              if (getCurrentPhaseIndex() > 0) {
-                e.currentTarget.style.transform = "translateY(-2px)";
-                e.currentTarget.style.boxShadow = "0 4px 8px rgba(100, 116, 139, 0.4)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (getCurrentPhaseIndex() > 0) {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "0 2px 4px rgba(100, 116, 139, 0.3)";
-              }
-            }}
-          >
-            ⬅️ Phase précédente
-          </button>
-          
-          <div style={{ 
-            fontSize: 12, 
-            color: "#64748b", 
-            fontWeight: "600",
-            textAlign: "center",
-          }}>
-            Phase {getCurrentPhaseIndex() + 1} / 63
+    <div className="font-sans flex h-screen" >
+      {/* Sidebar assistant */}
+      <aside style={{
+        backgroundColor: 'oklch(0.42 0.1947 261.88)'
+      }} className="w-[320px] min-w-[260px] max-w-[340px] h-full bg-white border-r border-slate-200 flex flex-col shadow-lg overflow-y-auto">
+        <div className="flex-1 flex flex-col pt-12 px-4">
+          <div className="mb-4">
+            <div style={{
+              backgroundColor: 'oklch(0.52 0.1401 247.65)'
+            }} className="rounded-xl shadow-lg border border-slate-200 p-6 h-64 overflow-auto flex flex-col justify-between">
+              <div className="text-[15px] leading-relaxed text-white">
+                <p
+                  className="m-0"
+                  dangerouslySetInnerHTML={{
+                    __html: displayText.replace(
+                      /\*\*(.*?)\*\*/g,
+                      "<strong>$1</strong>"
+                    ),
+                  }}
+                />
+                {phase == 'loading' && "Chargement de l'assistant... "}
+                {isTyping && (
+                  <span
+                    className="inline-block w-2 h-[14px] bg-white rounded animate-blink ml-0.5 align-text-bottom"
+                  ></span>
+                )}
+              </div>
+            </div>
           </div>
-          
+          {/* Blocs d'interaction utilisateur */}
+          <div className="px-4 pb-4 flex flex-col gap-4">
+            {/* Boutons de phase (Débloquer / Commencer) */}
+            {(showUnlockButton || showStartLearningButton) && (
+              <div className="text-center">
+                {showStartLearningButton && (
+                  <button
+                    onClick={startLearningPhase}
+                    className="text-[16px] px-6 py-2 bg-gradient-to-br from-sky-500 to-sky-700 text-white border-none rounded-lg cursor-pointer font-bold shadow-md transition-all duration-200 animate-pulse"
+                  >
+                    {phase === "celebration-before-thousands"
+                      ? UI_MESSAGES.buttons.startLearning.thousands
+                      : phase === "celebration-thousands-complete"
+                        ? UI_MESSAGES.buttons.startLearning.freeMode
+                        : UI_MESSAGES.buttons.startLearning.default}
+                  </button>
+                )}
+                {showUnlockButton && (
+                  <button
+                    onClick={unlockNextColumn}
+                    className={`text-[15px] px-5 py-2 bg-gradient-to-br from-violet-500 to-violet-700 text-white border-none rounded-lg cursor-pointer font-bold transition-all duration-200 shadow-md animate-pulse${showStartLearningButton ? ' ml-3' : ''}`}
+                  >
+                    {UI_MESSAGES.buttons.unlock}
+                  </button>
+                )}
+              </div>
+            )}
+            {/* Input field for questions */}
+            {showInputField && (
+              <div className="text-center">
+                {phase === "intro-welcome-personalized" ? (
+                  <>
+                    <input
+                      type="text"
+                      value={userInput}
+                      onChange={(e) => setUserInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleIntroNameSubmit();
+                        }
+                      }}
+                      placeholder="Ton prénom (optionnel)..."
+                      className="text-[16px] px-3 py-2 rounded-md border-2 border-slate-300 w-[200px] text-center mr-2"
+                    />
+                    <button
+                      onClick={handleIntroNameSubmit}
+                      className="text-[16px] px-5 py-2 bg-gradient-to-br from-sky-500 to-sky-700 text-white border-none rounded-lg cursor-pointer font-bold shadow-md transition-all duration-200"
+                    >
+                      ✓ Continuer
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <input
+                      type="number"
+                      value={userInput}
+                      onChange={(e) => setUserInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleUserInputSubmit();
+                        }
+                      }}
+                      placeholder="Ta réponse..."
+                      className="text-[16px] px-3 py-2 rounded-md border-2 bg-white w-[120px] text-center mr-2"
+                    />
+                    <button
+                      onClick={handleUserInputSubmit}
+                      className="text-[16px] px-5 py-2 bg-gradient-to-br from-sky-500 to-sky-700 text-white border-none rounded-lg cursor-pointer font-bold shadow-md transition-all duration-200"
+                    >
+                      ✓ Valider
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+            {/* Response buttons for intro-discover-machine */}
+            {showResponseButtons && phase === "intro-discover-machine" && (
+              <div className="flex flex-col gap-2 items-center">
+                <button
+                  onClick={() => {
+                    setSelectedResponse("belle");
+                    handleIntroMachineResponse();
+                  }}
+                  className="text-[16px] px-5 py-2 bg-gradient-to-br from-amber-400 to-amber-600 text-white border-none rounded-lg cursor-pointer font-bold shadow-md w-[250px]"
+                >
+                  Trop belle !
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedResponse("bof");
+                    handleIntroMachineResponse();
+                  }}
+                  className="text-[16px] px-5 py-2 bg-gradient-to-br from-slate-400 to-slate-600 text-white border-none rounded-lg cursor-pointer font-bold shadow-md w-[250px]"
+                >
+                  Bof...
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedResponse("comprends-rien");
+                    handleIntroMachineResponse();
+                  }}
+                  className="text-[16px] px-5 py-2 bg-gradient-to-br from-violet-500 to-violet-700 text-white border-none rounded-lg cursor-pointer font-bold shadow-md w-[250px]"
+                >
+                  J'y comprends rien !
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedResponse("cest-quoi");
+                    handleIntroMachineResponse();
+                  }}
+                  className="text-[16px] px-5 py-2 bg-gradient-to-br from-sky-500 to-sky-700 text-white border-none rounded-lg cursor-pointer font-bold shadow-md w-[250px]"
+                >
+                  C'est quoi ?
+                </button>
+              </div>
+            )}
+            {/* Choice buttons for intro-second-column */}
+            {phase === "intro-second-column" && (
+              <div className="flex flex-col gap-2 items-center">
+                <button
+                  onClick={() => handleIntroSecondColumnChoice("ajouter-rouleau")}
+                  className="text-[16px] px-5 py-2 bg-gradient-to-br from-green-500 to-green-700 text-white border-none rounded-lg cursor-pointer font-bold shadow-md w-[280px]"
+                >
+                  Ajouter un rouleau !
+                </button>
+                <button
+                  onClick={() => handleIntroSecondColumnChoice("plus-grande")}
+                  className="text-[16px] px-5 py-2 bg-gradient-to-br from-sky-500 to-sky-700 text-white border-none rounded-lg cursor-pointer font-bold shadow-md w-[280px]"
+                >
+                  Faire une plus grande machine !
+                </button>
+                <button
+                  onClick={() => handleIntroSecondColumnChoice("sais-pas")}
+                  className="text-[16px] px-5 py-2 bg-gradient-to-br from-slate-400 to-slate-600 text-white border-none rounded-lg cursor-pointer font-bold shadow-md w-[280px]"
+                >
+                  Je ne sais pas !
+                </button>
+              </div>
+            )}
+            {/* Choice buttons for intro-three-column */}
+            {phase === "intro-three-column" && (
+              <div className="flex flex-col gap-2 items-center">
+                <button
+                  onClick={() => handleIntroThirdColumnChoice("ajouter-rouleau")}
+                  className="text-[16px] px-5 py-2 bg-gradient-to-br from-green-500 to-green-700 text-white border-none rounded-lg cursor-pointer font-bold shadow-md w-[280px]"
+                >
+                  Ajouter un troisième rouleau !
+                </button>
+                <button
+                  onClick={() => handleIntroThirdColumnChoice("plus-grande")}
+                  className="text-[16px] px-5 py-2 bg-gradient-to-br from-sky-500 to-sky-700 text-white border-none rounded-lg cursor-pointer font-bold shadow-md w-[280px]"
+                >
+                  Faire une encore plus grande machine !
+                </button>
+                <button
+                  onClick={() => handleIntroThirdColumnChoice("sais-pas")}
+                  className="text-[16px] px-5 py-2 bg-gradient-to-br from-slate-400 to-slate-600 text-white border-none rounded-lg cursor-pointer font-bold shadow-md w-[280px]"
+                >
+                  Je ne sais pas !
+                </button>
+              </div>
+            )}
+            {/* Choice buttons for intro-four-column */}
+            {phase === "intro-four-column" && (
+              <div className="flex flex-col gap-2 items-center">
+                <button
+                  onClick={() => handleIntroFourthColumnChoice("ajouter-rouleau")}
+                  className="text-[16px] px-5 py-2 bg-gradient-to-br from-green-500 to-green-700 text-white border-none rounded-lg cursor-pointer font-bold shadow-md w-[280px]"
+                >
+                  Ajouter un quatrième rouleau !
+                </button>
+                <button
+                  onClick={() => handleIntroFourthColumnChoice("plus-grande")}
+                  className="text-[16px] px-5 py-2 bg-gradient-to-br from-sky-500 to-sky-700 text-white border-none rounded-lg cursor-pointer font-bold shadow-md w-[280px]"
+                >
+                  Faire la machine ultime !
+                </button>
+                <button
+                  onClick={() => handleIntroFourthColumnChoice("sais-pas")}
+                  className="text-[16px] px-5 py-2 bg-gradient-to-br from-slate-400 to-slate-600 text-white border-none rounded-lg cursor-pointer font-bold shadow-md w-[280px]"
+                >
+                  Je ne sais pas !
+                </button>
+              </div>
+            )}
+            {/* Attempt indicator for challenges */}
+            {(showValidateLearningButton ||
+              showValidateTensButton ||
+              showValidateHundredsButton ||
+              showValidateThousandsButton) &&
+              attemptCount > 0 && (
+                <div
+                  className={`px-3 py-2 rounded-md text-center text-[13px] font-bold ${
+                    attemptCount === 1
+                      ? 'bg-blue-100 text-blue-900'
+                      : attemptCount === 2
+                        ? 'bg-yellow-100 text-yellow-900'
+                        : attemptCount === 3
+                          ? 'bg-orange-100 text-orange-900'
+                          : 'bg-red-100 text-red-900'
+                  }`}
+                >
+                  {attemptCount === 1 && "Essai 1/4"}
+                  {attemptCount === 2 && "Essai 2/4 - Tu peux le faire !"}
+                  {attemptCount === 3 && "Essai 3/4 - Voici des indices !"}
+                  {attemptCount >= 4 && "Besoin d'aide ?"}
+                </div>
+              )}
+            {/* Help options when user has tried 4+ times */}
+            {showHelpOptions && (
+              <div className="p-4 bg-yellow-100 rounded-lg border-2 border-yellow-400">
+                <p className="mb-3 text-[14px] font-bold text-yellow-900 text-center">
+                  Comment veux-tu continuer ?
+                </p>
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={() => handleHelpChoice("tryAgain")}
+                    className="text-[14px] px-4 py-2 bg-gradient-to-br from-amber-400 to-amber-600 text-white border-none rounded-md cursor-pointer font-bold shadow transition-all duration-200"
+                  >
+                    Essayer encore tout seul !
+                  </button>
+                  <button
+                    onClick={() => handleHelpChoice("guided")}
+                    className="text-[14px] px-4 py-2 bg-gradient-to-br from-blue-500 to-blue-700 text-white border-none rounded-md cursor-pointer font-bold shadow transition-all duration-200"
+                  >
+                    Aide-moi à le faire !
+                  </button>
+                
+                </div>
+              </div>
+            )}
+            {/* Progress tracker showing total challenges completed */}
+            {totalChallengesCompleted > 0 && (
+              <div className="px-3 py-2 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-md text-center text-[13px] font-bold text-white shadow">
+                {totalChallengesCompleted} défi
+                {totalChallengesCompleted > 1 ? "s" : ""} réussi
+                {totalChallengesCompleted > 1 ? "s" : ""} ! Continue !
+              </div>
+            )}
+            {/* Guided mode indicator */}
+            {guidedMode && (
+              <div className="px-3 py-2 bg-gradient-to-br from-blue-500 to-blue-700 rounded-md text-center text-[13px] font-bold text-white shadow">
+                Mode guidé actif - Suis les instructions !
+              </div>
+            )}
+            {/* Solution animation indicator */}
+            {showSolutionAnimation && (
+              <div className="px-3 py-2 bg-gradient-to-br from-violet-500 to-violet-700 rounded-md text-center text-[13px] font-bold text-white shadow">
+                Regarde bien comment on construit le nombre {currentTarget} !
+              </div>
+            )}
+          </div>
+        </div>
+      {/* Navigation phase en bas de la sidebar */}
+      <div className="w-full px-4 pb-4 flex flex-col items-center">
+        
           <button
             onClick={goToNextPhase}
             disabled={getCurrentPhaseIndex() >= 62}
-            style={{
-              fontSize: 14,
-              padding: "8px 16px",
-              background: getCurrentPhaseIndex() >= 62 
-                ? "#e2e8f0" 
-                : "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)",
-              color: getCurrentPhaseIndex() >= 62 ? "#94a3b8" : "#fff",
-              border: "none",
-              borderRadius: 6,
-              cursor: getCurrentPhaseIndex() >= 62 ? "not-allowed" : "pointer",
-              fontWeight: "bold",
-              boxShadow: getCurrentPhaseIndex() >= 62 
-                ? "none" 
-                : "0 2px 4px rgba(14, 165, 233, 0.3)",
-              transition: "all 0.2s ease",
-            }}
-            onMouseEnter={(e) => {
-              if (getCurrentPhaseIndex() < 62) {
-                e.currentTarget.style.transform = "translateY(-2px)";
-                e.currentTarget.style.boxShadow = "0 4px 8px rgba(14, 165, 233, 0.4)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (getCurrentPhaseIndex() < 62) {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "0 2px 4px rgba(14, 165, 233, 0.3)";
-              }
-            }}
+            className={`text-[14px] px-4 py-2 rounded-md font-bold transition-all duration-200 border-none flex-1 ${getCurrentPhaseIndex() >= 62
+              ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+              : 'bg-gradient-to-br from-sky-500 to-sky-700 text-white cursor-pointer shadow-md hover:-translate-y-0.5 hover:shadow-lg'}`}
+            style={{ visibility: 'visible' }}
           >
-            Phase suivante ➡️
+            Suivante ➡️
           </button>
-        </div>
-
-        {/* Boutons de phase (Débloquer / Commencer) */}
-        {(showUnlockButton || showStartLearningButton) && (
-          <div style={{ marginTop: 16, textAlign: "center" }}>
-            {showStartLearningButton && (
-              <button
-                onClick={startLearningPhase}
-                style={{
-                  fontSize: 16,
-                  padding: "10px 24px",
-                  background:
-                    "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 8,
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                  boxShadow: "0 4px 8px rgba(14, 165, 233, 0.3)",
-                  transition: "all 0.2s ease",
-                  animation: "pulse 2s ease-in-out infinite",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 6px 12px rgba(14, 165, 233, 0.4)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 8px rgba(14, 165, 233, 0.3)";
-                }}
-              >
-                {phase === "celebration-before-thousands"
-                  ? UI_MESSAGES.buttons.startLearning.thousands
-                  : phase === "celebration-thousands-complete"
-                    ? UI_MESSAGES.buttons.startLearning.freeMode
-                    : UI_MESSAGES.buttons.startLearning.default}
-              </button>
-            )}
-            {showUnlockButton && (
-              <button
-                onClick={unlockNextColumn}
-                style={{
-                  fontSize: 15,
-                  padding: "8px 20px",
-                  background:
-                    "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 8,
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                  transition: "all 0.2s ease",
-                  marginLeft: showStartLearningButton ? "12px" : "0",
-                  boxShadow: "0 4px 8px rgba(139, 92, 246, 0.3)",
-                  animation: "pulse 2s ease-in-out infinite",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 6px 12px rgba(139, 92, 246, 0.4)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 8px rgba(139, 92, 246, 0.3)";
-                }}
-              >
-                {UI_MESSAGES.buttons.unlock}
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Input field for questions */}
-        {showInputField && (
-          <div style={{ marginTop: 20, textAlign: "center" }}>
-            {phase === "intro-welcome-personalized" ? (
-              // Text input for name
-              <>
-                <input
-                  type="text"
-                  value={userInput}
-                  onChange={(e) => setUserInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleIntroNameSubmit();
-                    }
-                  }}
-                  placeholder="Ton prénom (optionnel)..."
-                  style={{
-                    fontSize: 16,
-                    padding: "8px 12px",
-                    borderRadius: 6,
-                    border: "2px solid #cbd5e1",
-                    width: "200px",
-                    textAlign: "center",
-                    marginRight: 8,
-                  }}
-                />
-                <button
-                  onClick={handleIntroNameSubmit}
-                  style={{
-                    fontSize: 16,
-                    padding: "8px 20px",
-                    background:
-                      "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 8,
-                    cursor: "pointer",
-                    fontWeight: "bold",
-                    boxShadow: "0 4px 8px rgba(14, 165, 233, 0.3)",
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  ✓ Continuer
-                </button>
-              </>
-            ) : (
-              // Default number input
-              <>
-                <input
-                  type="number"
-                  value={userInput}
-                  onChange={(e) => setUserInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleUserInputSubmit();
-                    }
-                  }}
-                  placeholder="Ta réponse..."
-                  style={{
-                    fontSize: 16,
-                    padding: "8px 12px",
-                    borderRadius: 6,
-                    border: "2px solid #cbd5e1",
-                    width: "120px",
-                    textAlign: "center",
-                    marginRight: 8,
-                  }}
-                />
-                <button
-                  onClick={handleUserInputSubmit}
-                  style={{
-                    fontSize: 16,
-                    padding: "8px 20px",
-                    background:
-                      "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 8,
-                    cursor: "pointer",
-                    fontWeight: "bold",
-                    boxShadow: "0 4px 8px rgba(14, 165, 233, 0.3)",
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  ✓ Valider
-                </button>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* Response buttons for intro-discover-machine */}
-        {showResponseButtons && phase === "intro-discover-machine" && (
-          <div
-            style={{
-              marginTop: 20,
-              display: "flex",
-              flexDirection: "column",
-              gap: 8,
-              alignItems: "center",
-            }}
-          >
-            <button
-              onClick={() => {
-                setSelectedResponse("belle");
-                handleIntroMachineResponse();
-              }}
-              style={{
-                fontSize: 16,
-                padding: "10px 20px",
-                background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                cursor: "pointer",
-                fontWeight: "bold",
-                boxShadow: "0 4px 8px rgba(245, 158, 11, 0.3)",
-                width: "250px",
-              }}
-            >
-              Trop belle !
-            </button>
-            <button
-              onClick={() => {
-                setSelectedResponse("bof");
-                handleIntroMachineResponse();
-              }}
-              style={{
-                fontSize: 16,
-                padding: "10px 20px",
-                background: "linear-gradient(135deg, #94a3b8 0%, #64748b 100%)",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                cursor: "pointer",
-                fontWeight: "bold",
-                boxShadow: "0 4px 8px rgba(148, 163, 184, 0.3)",
-                width: "250px",
-              }}
-            >
-              Bof...
-            </button>
-            <button
-              onClick={() => {
-                setSelectedResponse("comprends-rien");
-                handleIntroMachineResponse();
-              }}
-              style={{
-                fontSize: 16,
-                padding: "10px 20px",
-                background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                cursor: "pointer",
-                fontWeight: "bold",
-                boxShadow: "0 4px 8px rgba(139, 92, 246, 0.3)",
-                width: "250px",
-              }}
-            >
-              J'y comprends rien !
-            </button>
-            <button
-              onClick={() => {
-                setSelectedResponse("cest-quoi");
-                handleIntroMachineResponse();
-              }}
-              style={{
-                fontSize: 16,
-                padding: "10px 20px",
-                background: "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                cursor: "pointer",
-                fontWeight: "bold",
-                boxShadow: "0 4px 8px rgba(14, 165, 233, 0.3)",
-                width: "250px",
-              }}
-            >
-              C'est quoi ?
-            </button>
-          </div>
-        )}
-
-        {/* Choice buttons for intro-second-column */}
-        {phase === "intro-second-column" && (
-          <div
-            style={{
-              marginTop: 20,
-              display: "flex",
-              flexDirection: "column",
-              gap: 8,
-              alignItems: "center",
-            }}
-          >
-            <button
-              onClick={() => handleIntroSecondColumnChoice("ajouter-rouleau")}
-              style={{
-                fontSize: 16,
-                padding: "10px 20px",
-                background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                cursor: "pointer",
-                fontWeight: "bold",
-                boxShadow: "0 4px 8px rgba(34, 197, 94, 0.3)",
-                width: "280px",
-              }}
-            >
-              Ajouter un rouleau !
-            </button>
-            <button
-              onClick={() => handleIntroSecondColumnChoice("plus-grande")}
-              style={{
-                fontSize: 16,
-                padding: "10px 20px",
-                background: "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                cursor: "pointer",
-                fontWeight: "bold",
-                boxShadow: "0 4px 8px rgba(14, 165, 233, 0.3)",
-                width: "280px",
-              }}
-            >
-              Faire une plus grande machine !
-            </button>
-            <button
-              onClick={() => handleIntroSecondColumnChoice("sais-pas")}
-              style={{
-                fontSize: 16,
-                padding: "10px 20px",
-                background: "linear-gradient(135deg, #94a3b8 0%, #64748b 100%)",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                cursor: "pointer",
-                fontWeight: "bold",
-                boxShadow: "0 4px 8px rgba(148, 163, 184, 0.3)",
-                width: "280px",
-              }}
-            >
-              Je ne sais pas !
-            </button>
-          </div>
-        )}
-
-        {/* Choice buttons for intro-three-column */}
-        {phase === "intro-three-column" && (
-          <div
-            style={{
-              marginTop: 20,
-              display: "flex",
-              flexDirection: "column",
-              gap: 8,
-              alignItems: "center",
-            }}
-          >
-            <button
-              onClick={() => handleIntroThirdColumnChoice("ajouter-rouleau")}
-              style={{
-                fontSize: 16,
-                padding: "10px 20px",
-                background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                cursor: "pointer",
-                fontWeight: "bold",
-                boxShadow: "0 4px 8px rgba(34, 197, 94, 0.3)",
-                width: "280px",
-              }}
-            >
-              Ajouter un troisième rouleau !
-            </button>
-            <button
-              onClick={() => handleIntroThirdColumnChoice("plus-grande")}
-              style={{
-                fontSize: 16,
-                padding: "10px 20px",
-                background: "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                cursor: "pointer",
-                fontWeight: "bold",
-                boxShadow: "0 4px 8px rgba(14, 165, 233, 0.3)",
-                width: "280px",
-              }}
-            >
-              Faire une encore plus grande machine !
-            </button>
-            <button
-              onClick={() => handleIntroThirdColumnChoice("sais-pas")}
-              style={{
-                fontSize: 16,
-                padding: "10px 20px",
-                background: "linear-gradient(135deg, #94a3b8 0%, #64748b 100%)",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                cursor: "pointer",
-                fontWeight: "bold",
-                boxShadow: "0 4px 8px rgba(148, 163, 184, 0.3)",
-                width: "280px",
-              }}
-            >
-              Je ne sais pas !
-            </button>
-          </div>
-        )}
-
-        {/* Choice buttons for intro-four-column */}
-        {phase === "intro-four-column" && (
-          <div
-            style={{
-              marginTop: 20,
-              display: "flex",
-              flexDirection: "column",
-              gap: 8,
-              alignItems: "center",
-            }}
-          >
-            <button
-              onClick={() => handleIntroFourthColumnChoice("ajouter-rouleau")}
-              style={{
-                fontSize: 16,
-                padding: "10px 20px",
-                background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                cursor: "pointer",
-                fontWeight: "bold",
-                boxShadow: "0 4px 8px rgba(34, 197, 94, 0.3)",
-                width: "280px",
-              }}
-            >
-              Ajouter un quatrième rouleau !
-            </button>
-            <button
-              onClick={() => handleIntroFourthColumnChoice("plus-grande")}
-              style={{
-                fontSize: 16,
-                padding: "10px 20px",
-                background: "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                cursor: "pointer",
-                fontWeight: "bold",
-                boxShadow: "0 4px 8px rgba(14, 165, 233, 0.3)",
-                width: "280px",
-              }}
-            >
-              Faire la machine ultime !
-            </button>
-            <button
-              onClick={() => handleIntroFourthColumnChoice("sais-pas")}
-              style={{
-                fontSize: 16,
-                padding: "10px 20px",
-                background: "linear-gradient(135deg, #94a3b8 0%, #64748b 100%)",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                cursor: "pointer",
-                fontWeight: "bold",
-                boxShadow: "0 4px 8px rgba(148, 163, 184, 0.3)",
-                width: "280px",
-              }}
-            >
-              Je ne sais pas !
-            </button>
-          </div>
-        )}
-
-        {/* Affichage du nombre total */}
-        <div
-          style={{
-            marginTop: 20,
-            padding: "12px",
-            background: "#f1f5f9",
-            borderRadius: 8,
-            textAlign: "center",
-          }}
-        >
-          <div style={{ fontSize: 28, fontWeight: "bold", color: "#0ea5e9" }}>
-            {totalNumber.toString().padStart(4, "0")}
-          </div>
-        </div>
-
-        {/* Attempt indicator for challenges */}
-        {(showValidateLearningButton ||
-          showValidateTensButton ||
-          showValidateHundredsButton ||
-          showValidateThousandsButton) &&
-          attemptCount > 0 && (
-            <div
-              style={{
-                marginTop: 12,
-                padding: "8px 12px",
-                background:
-                  attemptCount === 1
-                    ? "#dbeafe"
-                    : attemptCount === 2
-                      ? "#fef3c7"
-                      : attemptCount === 3
-                        ? "#fed7aa"
-                        : "#fee2e2",
-                borderRadius: 6,
-                textAlign: "center",
-                fontSize: 13,
-                fontWeight: "bold",
-                color:
-                  attemptCount === 1
-                    ? "#1e40af"
-                    : attemptCount === 2
-                      ? "#92400e"
-                      : attemptCount === 3
-                        ? "#9a3412"
-                        : "#991b1b",
-              }}
-            >
-              {attemptCount === 1 && "Essai 1/4"}
-              {attemptCount === 2 && "Essai 2/4 - Tu peux le faire !"}
-              {attemptCount === 3 && "Essai 3/4 - Voici des indices !"}
-              {attemptCount >= 4 && "Besoin d'aide ?"}
-            </div>
-          )}
-
-        {/* Help options when user has tried 4+ times */}
-        {showHelpOptions && (
-          <div
-            style={{
-              marginTop: 16,
-              padding: "16px",
-              background: "#fef3c7",
-              borderRadius: 8,
-              border: "2px solid #fbbf24",
-            }}
-          >
-            <p
-              style={{
-                margin: "0 0 12px 0",
-                fontSize: 14,
-                fontWeight: "bold",
-                color: "#92400e",
-                textAlign: "center",
-              }}
-            >
-              Comment veux-tu continuer ?
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <button
-                onClick={() => handleHelpChoice("tryAgain")}
-                style={{
-                  fontSize: 14,
-                  padding: "10px 16px",
-                  background:
-                    "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 6,
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                  boxShadow: "0 2px 4px rgba(245, 158, 11, 0.3)",
-                  transition: "all 0.2s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
-              >
-                Essayer encore tout seul !
-              </button>
-              <button
-                onClick={() => handleHelpChoice("guided")}
-                style={{
-                  fontSize: 14,
-                  padding: "10px 16px",
-                  background:
-                    "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 6,
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                  boxShadow: "0 2px 4px rgba(59, 130, 246, 0.3)",
-                  transition: "all 0.2s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
-              >
-                Aide-moi à le faire !
-              </button>
-              <button
-                onClick={() => handleHelpChoice("showSolution")}
-                style={{
-                  fontSize: 14,
-                  padding: "10px 16px",
-                  background:
-                    "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 6,
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                  boxShadow: "0 2px 4px rgba(139, 92, 246, 0.3)",
-                  transition: "all 0.2s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
-              >
-                Montre-moi la solution !
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Progress tracker showing total challenges completed */}
-        {totalChallengesCompleted > 0 && (
-          <div
-            style={{
-              marginTop: 12,
-              padding: "8px 12px",
-              background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-              borderRadius: 6,
-              textAlign: "center",
-              fontSize: 13,
-              fontWeight: "bold",
-              color: "#fff",
-              boxShadow: "0 2px 4px rgba(16, 185, 129, 0.3)",
-            }}
-          >
-            {totalChallengesCompleted} défi
-            {totalChallengesCompleted > 1 ? "s" : ""} réussi
-            {totalChallengesCompleted > 1 ? "s" : ""} ! Continue !
-          </div>
-        )}
-
-        {/* Guided mode indicator */}
-        {guidedMode && (
-          <div
-            style={{
-              marginTop: 12,
-              padding: "8px 12px",
-              background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
-              borderRadius: 6,
-              textAlign: "center",
-              fontSize: 13,
-              fontWeight: "bold",
-              color: "#fff",
-              boxShadow: "0 2px 4px rgba(59, 130, 246, 0.3)",
-            }}
-          >
-            Mode guidé actif - Suis les instructions !
-          </div>
-        )}
-
-        {/* Solution animation indicator */}
-        {showSolutionAnimation && (
-          <div
-            style={{
-              marginTop: 12,
-              padding: "8px 12px",
-              background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
-              borderRadius: 6,
-              textAlign: "center",
-              fontSize: 13,
-              fontWeight: "bold",
-              color: "#fff",
-              boxShadow: "0 2px 4px rgba(139, 92, 246, 0.3)",
-            }}
-          >
-            Regarde bien comment on construit le nombre {currentTarget} !
-          </div>
-        )}
       </div>
-
-      {/* Assistant pédagogique */}
-      <div
-        style={{
-          width: 280,
-          minHeight: 240,
-          borderRadius: 12,
-          padding: 0,
-          background: "#f8fafc",
-          border: "1px solid #e2e8f0",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-        }}
-      >
-        <div
-          style={{
-            padding: "12px 16px",
-            borderBottom: "1px solid #e2e8f0",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
-          <span style={{ fontSize: 20 }} role="img" aria-label="robot">
-            🤖
-          </span>
-          <h3
-            style={{
-              margin: 0,
-              fontSize: 16,
-              fontWeight: 600,
-              color: "#334155",
-            }}
-          >
-            Assistant Pédagogique
-          </h3>
+      </aside>
+      {/* Main content */}
+      <main className="flex-1 flex items-center justify-center h-full bg-slate-100">
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="w-full h-full max-w-full max-h-full border-2 border-slate-300 rounded-lg overflow-hidden bg-black flex items-center justify-center">
+            <UnityGame />
+          </div>
         </div>
-        <div
-          style={{
-            flex: 1,
-            padding: "16px",
-            fontSize: 14,
-            lineHeight: 1.6,
-            color: "#475569",
-            minHeight: 100,
-            position: "relative",
-          }}
-        >
-          <p
-            style={{ margin: 0 }}
-            dangerouslySetInnerHTML={{
-              __html: displayText.replace(
-                /\*\*(.*?)\*\*/g,
-                "<strong>$1</strong>"
-              ),
-            }}
-          />
-          {isTyping && (
-            <span
-              style={{
-                display: "inline-block",
-                width: 8,
-                height: 14,
-                background: "#3b82f6",
-                borderRadius: 1,
-                animation: "blink 1s step-end infinite",
-                marginLeft: 2,
-                verticalAlign: "text-bottom",
-              }}
-            ></span>
-          )}
-        </div>
-      </div>
-
-      <style>{`
-        @keyframes blink {
-          from, to { background: transparent }
-          50% { background: #3b82f6; }
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.9; }
-        }
-        @keyframes celebration {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-          100% { transform: scale(1); }
-        }
-      `}</style>
+      </main>
     </div>
   );
 }

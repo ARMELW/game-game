@@ -335,21 +335,13 @@ export const useStore = create<MachineState>((set, get) => ({
             return;
         }
 
-        // Handle auto-transitions for intro phases
 
+        // Handle auto-transitions for intro phases
         if (phase === 'intro-welcome-personalized') {
             set({ showInputField: true, feedback: "", instruction: "" });
         } else if (phase === 'intro-discover-machine') {
             set({ showResponseButtons: true, selectedResponse: null });
-            // Auto-timeout after 10 seconds si pas de réponse (à traiter plus tard)
-            const newTimer = setTimeout(() => {
-                const currentState = get();
-                if (currentState.phase === 'intro-discover-machine' && !currentState.selectedResponse) {
-                    currentState.setSelectedResponse('timeout');
-                    currentState.handleIntroMachineResponse();
-                }
-            }, 10000);
-            set({ timer: newTimer as unknown as number });
+            // Suppression du timeout automatique : les boutons restent affichés tant que l'utilisateur n'a pas choisi
         }
 
         get().updateButtonVisibility();
@@ -678,7 +670,7 @@ export const useStore = create<MachineState>((set, get) => ({
                 "6 ! Continue jusqu'au bout !",
                 "7 !",
                 "8 ! Presque plein !",
-                "9 ! Et voilà, on a rempli la machine !"
+                "9 !"
             ];
 
             if (messages[introClickCount + 1]) {
@@ -1207,7 +1199,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     newCols[0].value = 0;
                     return newCols;
                 });
-                const infoMessage = "**30** (TRENTE) ! Compte avec moi les paquets : UN, DEUX, TROIS !";
+                const infoMessage = "30 (TRENTE) ! Compte avec moi les paquets : UN, DEUX, TROIS !";
                 get().setFeedback(infoMessage);
                 get().speakAndThen(infoMessage, () => {
                     get().runAutoCount();
@@ -1223,13 +1215,13 @@ export const useStore = create<MachineState>((set, get) => ({
                 const displayNumber = nextValue * 10;
                 setValue(displayNumber);
                 let infoMessage = "";
-                if (nextValue === 4) infoMessage = `**${displayNumber}** (QUARANTE) !  Compte les paquets : UN, DEUX, TROIS, QUATRE !`;
-                else if (nextValue === 5) infoMessage = `**${displayNumber}** (CINQUANTE) !  5 paquets de 10 !`;
-                else if (nextValue === 6) infoMessage = `**${displayNumber}** (SOIXANTE) !  6 paquets de 10 !`;
-                else if (nextValue === 7) infoMessage = `**${displayNumber}** (SOIXANTE-DIX) !  7 paquets de 10 !`;
-                else if (nextValue === 8) infoMessage = `**${displayNumber}** (QUATRE-VINGTS) !  8 paquets de 10 !`;
-                else if (nextValue === 9) infoMessage = `**${displayNumber}** (QUATRE-VINGT-DIX) !  Presque 100 !`;
-                else infoMessage = `**${displayNumber}** !`;
+                if (nextValue === 4) infoMessage = `${displayNumber} (QUARANTE) !  Compte les paquets : UN, DEUX, TROIS, QUATRE !`;
+                else if (nextValue === 5) infoMessage = `${displayNumber} (CINQUANTE) !  5 paquets de 10 !`;
+                else if (nextValue === 6) infoMessage = `${displayNumber} (SOIXANTE) !  6 paquets de 10 !`;
+                else if (nextValue === 7) infoMessage = `${displayNumber} (SOIXANTE-DIX) !  7 paquets de 10 !`;
+                else if (nextValue === 8) infoMessage = `${displayNumber} (QUATRE-VINGTS) !  8 paquets de 10 !`;
+                else if (nextValue === 9) infoMessage = `${displayNumber} (QUATRE-VINGT-DIX) !  Presque 100 !`;
+                else infoMessage = `${displayNumber} !`;
                 get().setFeedback(infoMessage);
                 get().speakAndThen(infoMessage, () => {
                     get().runAutoCount(); // Continue counting
@@ -1267,7 +1259,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     return newCols;
                 });
                 const total = firstExample.tens * 10 + firstExample.units;
-                const infoMessage = `**${total}** (${firstExample.name}) ! ${firstExample.tens} dizaine(s) + ${firstExample.units} unité(s) = ${total} !`;
+                const infoMessage = `${total} (${firstExample.name}) ! ${firstExample.tens} dizaine(s) + ${firstExample.units} unité(s) = ${total} !`;
                 get().setFeedback(infoMessage);
                 get().speakAndThen(infoMessage, () => {
                     get().runAutoCount();
@@ -1282,7 +1274,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     return newCols;
                 });
                 const total = nextExample.tens * 10 + nextExample.units;
-                const infoMessage = `**${total}** (${nextExample.name}) ! ${nextExample.tens} dizaine(s) + ${nextExample.units} unité(s) = ${total} !`;
+                const infoMessage = `${total} (${nextExample.name}) ! ${nextExample.tens} dizaine(s) + ${nextExample.units} unité(s) = ${total} !`;
                 get().setFeedback(infoMessage);
                 get().speakAndThen(infoMessage, () => {
                     get().runAutoCount();
@@ -1319,7 +1311,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     newCols[1].value = 0;
                     return newCols;
                 });
-                const infoMessage = "**300** (TROIS-CENTS) ! Compte avec moi les GRANDS paquets : UN, DEUX, TROIS !";
+                const infoMessage = "300 (TROIS-CENTS) ! Compte avec moi les GRANDS paquets : UN, DEUX, TROIS !";
                 get().setFeedback(infoMessage);
                 get().speakAndThen(infoMessage, () => {
                     get().runAutoCount();
@@ -1334,13 +1326,13 @@ export const useStore = create<MachineState>((set, get) => ({
                 const nextValue = hundredsValue + 1;
                 const displayNumber = nextValue * 100;
                 setValue(displayNumber);
-                let infoMessage = `**${displayNumber}** !`;
-                if (nextValue === 4) infoMessage = `**${displayNumber}** (QUATRE-CENTS) !  Compte les GRANDS paquets : UN, DEUX, TROIS, QUATRE !`;
-                else if (nextValue === 5) infoMessage = `**${displayNumber}** (CINQ-CENTS) !  5 grands paquets de 100 !`;
-                else if (nextValue === 6) infoMessage = `**${displayNumber}** (SIX-CENTS) !  6 grands paquets de 100 !`;
-                else if (nextValue === 7) infoMessage = `**${displayNumber}** (SEPT-CENTS) !  7 grands paquets de 100 !`;
-                else if (nextValue === 8) infoMessage = `**${displayNumber}** (HUIT-CENTS) !  8 grands paquets de 100 !`;
-                else if (nextValue === 9) infoMessage = `**${displayNumber}** (NEUF-CENTS) !  Presque 1000 !`;
+                let infoMessage = `${displayNumber} !`;
+                if (nextValue === 4) infoMessage = `${displayNumber} (QUATRE-CENTS) !  Compte les GRANDS paquets : UN, DEUX, TROIS, QUATRE !`;
+                else if (nextValue === 5) infoMessage = `${displayNumber} (CINQ-CENTS) !  5 grands paquets de 100 !`;
+                else if (nextValue === 6) infoMessage = `${displayNumber} (SIX-CENTS) !  6 grands paquets de 100 !`;
+                else if (nextValue === 7) infoMessage = `${displayNumber} (SEPT-CENTS) !  7 grands paquets de 100 !`;
+                else if (nextValue === 8) infoMessage = `${displayNumber} (HUIT-CENTS) !  8 grands paquets de 100 !`;
+                else if (nextValue === 9) infoMessage = `${displayNumber} (NEUF-CENTS) !  Presque 1000 !`;
                 get().setFeedback(infoMessage);
                 get().speakAndThen(infoMessage, () => {
                     get().runAutoCount(); // Continue counting
@@ -1382,7 +1374,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     return newCols;
                 });
                 const total = firstExample.hundreds * 100 + firstExample.tens * 10 + firstExample.units;
-                const infoMessage = `**${total}** (${firstExample.name}) ! 1 grand paquet de 100 !`;
+                const infoMessage = `${total} (${firstExample.name}) ! 1 grand paquet de 100 !`;
                 get().setFeedback(infoMessage);
                 get().speakAndThen(infoMessage, () => {
                     get().runAutoCount();
@@ -1407,7 +1399,7 @@ export const useStore = create<MachineState>((set, get) => ({
                 } else if (nextExample.tens === 0 && nextExample.units === 0) {
                     detailMsg = ` ! ${nextExample.hundreds} grand${nextExample.hundreds > 1 ? 's' : ''} paquet${nextExample.hundreds > 1 ? 's' : ''} de 100 !`;
                 }
-                const infoMessage = `**${total}** (${nextExample.name})${detailMsg}`;
+                const infoMessage = `${total} (${nextExample.name})${detailMsg}`;
                 get().setFeedback(infoMessage);
                 get().speakAndThen(infoMessage, () => {
                     get().runAutoCount();
@@ -1444,7 +1436,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     return newCols;
                 });
                 const total = firstExample.hundreds * 100 + firstExample.tens * 10 + firstExample.units;
-                const infoMessage = `**${total}** (${firstExample.name}) ! 1 grand paquet + 2 paquets + 3 billes !`;
+                const infoMessage = `${total} (${firstExample.name}) ! 1 grand paquet + 2 paquets + 3 billes !`;
                 get().setFeedback(infoMessage);
                 get().speakAndThen(infoMessage, () => {
                     get().runAutoCount();
@@ -1461,7 +1453,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     return newCols;
                 });
                 const total = nextExample.hundreds * 100 + nextExample.tens * 10 + nextExample.units;
-                const infoMessage = `**${total}** (${nextExample.name}) ! ${nextExample.hundreds} grand${nextExample.hundreds > 1 ? 's' : ''} paquet${nextExample.hundreds > 1 ? 's' : ''} + ${nextExample.tens} paquets + ${nextExample.units} billes !`;
+                const infoMessage = `${total} (${nextExample.name}) ! ${nextExample.hundreds} grand${nextExample.hundreds > 1 ? 's' : ''} paquet${nextExample.hundreds > 1 ? 's' : ''} + ${nextExample.tens} paquets + ${nextExample.units} billes !`;
                 get().setFeedback(infoMessage);
                 get().speakAndThen(infoMessage, () => {
                     get().runAutoCount();
@@ -1495,7 +1487,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     newCols[3].value = 3;
                     return newCols;
                 });
-                const infoMessage = "**3000** ! Trois ÉNORMES paquets !";
+                const infoMessage = "3000 ! Trois ÉNORMES paquets !";
                 get().setFeedback(infoMessage);
                 get().speakAndThen(infoMessage, () => {
                     get().runAutoCount();
@@ -1510,7 +1502,7 @@ export const useStore = create<MachineState>((set, get) => ({
                 const displayNumber = nextValue * 1000;
                 setValue(displayNumber);
                 const numberWords = ["", "", "", "TROIS", "QUATRE", "CINQ", "SIX", "SEPT", "HUIT", "NEUF"];
-                const infoMessage = `**${displayNumber}** ! ${numberWords[nextValue]} ÉNORMES paquets ! Imagine ${displayNumber} billes !`;
+                const infoMessage = `${displayNumber} ! ${numberWords[nextValue]} ÉNORMES paquets ! Imagine ${displayNumber} billes !`;
                 get().setFeedback(infoMessage);
                 get().speakAndThen(infoMessage, () => {
                     get().runAutoCount();
@@ -1557,7 +1549,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     return newCols;
                 });
                 const total = firstExample.thousands * 1000 + firstExample.hundreds * 100 + firstExample.tens * 10 + firstExample.units;
-                get().speakAndThen(`**${total}** (${firstExample.name}) ! C'est des nombres RONDS !`, () => {
+                get().speakAndThen(`${total} (${firstExample.name}) ! C'est des nombres RONDS !`, () => {
                     get().runAutoCount();
                 });
             } else if (currentExampleIndex < examples.length - 1) {
@@ -1572,7 +1564,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     return newCols;
                 });
                 const total = nextExample.thousands * 1000 + nextExample.hundreds * 100 + nextExample.tens * 10 + nextExample.units;
-                get().speakAndThen(`**${total}** (${nextExample.name}) ! Facile avec des nombres RONDS !`, () => {
+                get().speakAndThen(`${total} (${nextExample.name}) ! Facile avec des nombres RONDS !`, () => {
                     get().runAutoCount();
                 });
             } else {
@@ -1612,7 +1604,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     return newCols;
                 });
                 const total = firstExample.thousands * 1000 + firstExample.hundreds * 100 + firstExample.tens * 10 + firstExample.units;
-                get().speakAndThen(`**${total}** (${firstExample.name}) ! C'est ${firstExample.thousands} énorme + ${firstExample.hundreds} grands + ${firstExample.tens} paquets + ${firstExample.units} billes !`, () => {
+                get().speakAndThen(`${total} (${firstExample.name}) ! C'est ${firstExample.thousands} énorme + ${firstExample.hundreds} grands + ${firstExample.tens} paquets + ${firstExample.units} billes !`, () => {
                     get().runAutoCount();
                 });
             } else if (currentExampleIndex < examples.length - 1) {
@@ -1627,7 +1619,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     return newCols;
                 });
                 const total = nextExample.thousands * 1000 + nextExample.hundreds * 100 + nextExample.tens * 10 + nextExample.units;
-                get().speakAndThen(`**${total}** (${nextExample.name}) ! Décomposition : ${nextExample.thousands} énorme + ${nextExample.hundreds} grands + ${nextExample.tens} paquets + ${nextExample.units} billes !`, () => {
+                get().speakAndThen(`${total} (${nextExample.name}) ! Décomposition : ${nextExample.thousands} énorme + ${nextExample.hundreds} grands + ${nextExample.tens} paquets + ${nextExample.units} billes !`, () => {
                     get().runAutoCount();
                 });
             } else {
@@ -1662,7 +1654,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     return newCols;
                 });
                 const total = firstExample.thousands * 1000 + firstExample.hundreds * 100 + firstExample.tens * 10 + firstExample.units;
-                get().speakAndThen(`**${total}** (${firstExample.name}) !`, () => {
+                get().speakAndThen(`${total} (${firstExample.name}) !`, () => {
                     get().runAutoCount();
                 });
             } else if (currentExampleIndex < examples.length - 1) {
@@ -1677,7 +1669,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     return newCols;
                 });
                 const total = nextExample.thousands * 1000 + nextExample.hundreds * 100 + nextExample.tens * 10 + nextExample.units;
-                get().speakAndThen(`**${total}** (${nextExample.name}) !`, () => {
+                get().speakAndThen(`${total} (${nextExample.name}) !`, () => {
                     get().runAutoCount();
                 });
             } else {
@@ -2019,13 +2011,13 @@ export const useStore = create<MachineState>((set, get) => ({
                         isTransitioningToChallenge: false
                     });
                     //get().setPhase('challenge-unit-1');
-                    get().setFeedback(` DÉFI 1 : Affiche le nombre **${UNIT_CHALLENGES[0].targets[0]}** avec les boutons, puis clique sur VALIDER !`);
+                    get().setFeedback(` Affiche le nombre ${UNIT_CHALLENGES[0].targets[0]} avec les boutons, puis clique sur VALIDER !`);
                 });
                 return;
             }
             set({ addClicks: addClicks + 1 });
-            if (nextValue >= 4 && nextValue <= 8) get().setFeedback(`**${nextValue}** ! Continue avec VERT !`);
-            else get().setFeedback(`Maintenant **${nextValue}** ! Clique sur VERT !`);
+            if (nextValue >= 4 && nextValue <= 8) get().setFeedback(`${nextValue} ! Continue avec VERT !`);
+            else get().setFeedback(`Maintenant ${nextValue} ! Clique sur VERT !`);
             setTimeout(() => get().setFeedback(`${nextValue} billes. Continue avec VERT !`), FEEDBACK_DELAY);
         } else if (phase.startsWith('challenge-unit-')) {
             const challengeIndex = parseInt(phase.split('-')[2]) - 1;
@@ -2058,7 +2050,7 @@ export const useStore = create<MachineState>((set, get) => ({
             } else if (currentValue >= 1 && currentValue <= 8) {
                 // Counting to 9
                 const remaining = 9 - currentValue;
-                get().speakAndThen(`**${currentValue}** ! Continue ! Encore ${remaining} clic${remaining > 1 ? 's' : ''} pour arriver à 9 ! `);
+                get().speakAndThen(`${currentValue} ! Continue ! Encore ${remaining} clic${remaining > 1 ? 's' : ''} pour arriver à 9 ! `);
             } else if (currentValue === 0) {
                 // Just started
                 get().speakAndThen("Vas-y ! Clique sur VERT pour commencer à compter jusqu'à 9 ! 🚀");
@@ -2096,7 +2088,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     });
                     get().resetTenToTwentyChallenge();
                     //get().setPhase('challenge-ten-to-twenty');
-                    get().speakAndThen(` Mini-défi ! Montre-moi **DOUZE** (12) avec les boutons !`);
+                    get().speakAndThen(` Mini-défi ! Montre-moi DOUZE (12) avec les boutons !`);
                 }, FEEDBACK_DELAY * 2);
             } else if (unitsValue === 1 && tensValue === 1) {
                 get().speakAndThen("ONZE ! C'est 10 + 1. Tu vois la COMBINAISON ? Continue ! VERT");
@@ -2260,7 +2252,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     });
                     get().resetHundredToTwoHundredChallenge();
                     //get().setPhase('challenge-hundred-to-two-hundred');
-                    get().setFeedback(` Mini-défi ! Montre-moi **${HUNDRED_TO_TWO_HUNDRED_CHALLENGES[0].targets[0]}** (CENT-DIX) !`);
+                    get().setFeedback(` Mini-défi ! Montre-moi ${HUNDRED_TO_TWO_HUNDRED_CHALLENGES[0].targets[0]} (CENT-DIX) !`);
                 }, FEEDBACK_DELAY * 2);
             } else if (tensValue === 2 && unitsValue === 0) {
                 get().setFeedback(`${number} ! CENT-VINGT ! 1 grand paquet + 2 paquets ! Continue vers 130 ! VERT`);
@@ -2313,7 +2305,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     });
                     get().resetTwoHundredToThreeHundredChallenge();
                     // get().setPhase('challenge-two-hundred-to-three-hundred');
-                    get().setFeedback(` Mini-défi ! Montre-moi **${TWO_HUNDRED_TO_THREE_HUNDRED_CHALLENGES[0].targets[0]}** (DEUX-CENT-DIX) !`);
+                    get().setFeedback(` Mini-défi ! Montre-moi ${TWO_HUNDRED_TO_THREE_HUNDRED_CHALLENGES[0].targets[0]} (DEUX-CENT-DIX) !`);
                 }, FEEDBACK_DELAY * 2);
             } else if (number === 299) {
                 sequenceFeedback("DEUX-CENT-QUATRE-VINGT-DIX-NEUF ! Regarde, TOUT est plein !", "Que va-t-il se passer ? VERT");
@@ -2465,7 +2457,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     });
                     get().resetThousandToTwoThousandChallenge();
                     //get().setPhase('challenge-thousand-to-two-thousand');
-                    get().setFeedback(` Mini-défis 1000-2000 ! Montre-moi **${THOUSAND_TO_TWO_THOUSAND_CHALLENGES[0].targets[0]}** (MILLE-UN) !`);
+                    get().setFeedback(` Mini-défis 1000-2000 ! Montre-moi ${THOUSAND_TO_TWO_THOUSAND_CHALLENGES[0].targets[0]} (MILLE-UN) !`);
                 }, FEEDBACK_DELAY * 2);
             } else if (number === 1999) {
                 sequenceFeedback("MILLE-NEUF-CENT-QUATRE-VINGT-DIX-NEUF ! TOUT est plein !", "VERT pour la magie !");
@@ -2508,7 +2500,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     });
                     get().resetTwoThousandToThreeThousandChallenge();
                     //get().setPhase('challenge-two-thousand-to-three-thousand');
-                    get().setFeedback(` Mini-défi ! Montre-moi **${TWO_THOUSAND_TO_THREE_THOUSAND_CHALLENGES[0].targets[0]}** (DEUX-MILLE) !`);
+                    get().setFeedback(` Mini-défi ! Montre-moi ${TWO_THOUSAND_TO_THREE_THOUSAND_CHALLENGES[0].targets[0]} (DEUX-MILLE) !`);
                 }, FEEDBACK_DELAY * 2);
             } else if (number === 2999) {
                 sequenceFeedback("DEUX-MILLE-NEUF-CENT-QUATRE-VINGT-DIX-NEUF ! Regarde, TOUT est plein !", "Que va-t-il se passer ? VERT");
@@ -2656,7 +2648,7 @@ export const useStore = create<MachineState>((set, get) => ({
         }
 
         if (totalNumber <= 0) {
-            sequenceFeedback("C'est **ZÉRO** (0) !  Il n'y a plus rien. On ne peut pas descendre plus bas !", "ZÉRO = aucune bille, aucune quantité !");
+            sequenceFeedback("C'est ZÉRO (0) !  Il n'y a plus rien. On ne peut pas descendre plus bas !", "ZÉRO = aucune bille, aucune quantité !");
             return;
         }
 
@@ -2740,12 +2732,12 @@ export const useStore = create<MachineState>((set, get) => ({
             get().setFeedback("On n'enlève pas encore ! Clique sur VERT pour ajouter !");
         } else if (phase === 'click-remove' && isUnitsColumn(idx)) {
             const unitsValue = newCols[0].value;
-            if (unitsValue === 5) sequenceFeedback(`**${unitsValue}** (CINQ) ! ✋ Une main entière !`, `Bien joué ! Continue avec bouton ROUGE !`);
-            else if (unitsValue === 3) sequenceFeedback(`**${unitsValue}** (TROIS) ! 🎈`, `Continue vers zéro avec bouton ROUGE !`);
-            else if (unitsValue === 2) sequenceFeedback(`**${unitsValue}** (DEUX) ! ✌️`, `Presque à zéro ! Continue avec bouton ROUGE !`);
-            else if (unitsValue === 1) sequenceFeedback(`**${unitsValue}** (UN) ! 👆`, `Presque à ZÉRO ! Un dernier clic !`);
+            if (unitsValue === 5) sequenceFeedback(`${unitsValue} (CINQ) ! ✋ Une main entière !`, `Bien joué ! Continue avec bouton ROUGE !`);
+            else if (unitsValue === 3) sequenceFeedback(`${unitsValue} (TROIS) ! 🎈`, `Continue vers zéro avec bouton ROUGE !`);
+            else if (unitsValue === 2) sequenceFeedback(`${unitsValue} (DEUX) ! ✌️`, `Presque à zéro ! Continue avec bouton ROUGE !`);
+            else if (unitsValue === 1) sequenceFeedback(`${unitsValue} (UN) ! 👆`, `Presque à ZÉRO ! Un dernier clic !`);
             else if (unitsValue === 0 && tempTotalBefore === 1) {
-                sequenceFeedback("**ZÉRO** (0) !  Plus rien ! On est revenu au début !", "Fantastique ! Tu maîtrises les nombres de 0 à 9 !");
+                sequenceFeedback("ZÉRO (0) !  Plus rien ! On est revenu au début !", "Fantastique ! Tu maîtrises les nombres de 0 à 9 !");
                 setTimeout(() => {
                     // Keep units unlocked for challenges
                     const newCols = initialColumns.map(col => ({ ...col }));
@@ -2756,7 +2748,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     //  get().setPhase('challenge-unit-intro');
                 }, FEEDBACK_DELAY);
             } else if (unitsValue > 0) {
-                sequenceFeedback(`**${unitsValue}** ! Baisse un doigt !`, `${unitsValue} doigts levés. Continue avec bouton ROUGE !`);
+                sequenceFeedback(`${unitsValue} ! Baisse un doigt !`, `${unitsValue} doigts levés. Continue avec bouton ROUGE !`);
             }
         } else if (phase === 'normal' && hasBorrow) {
             get().setFeedback("🔄 Emprunt magique ! Continue avec bouton ROUGE si nécessaire !");
@@ -2863,7 +2855,7 @@ export const useStore = create<MachineState>((set, get) => ({
                 if (unitTargetIndex + 1 >= challenge.targets.length) {
                     if (challengeIndex === UNIT_CHALLENGES.length - 1) {
                         // All unit challenges completed - commented out transition
-                        /**
+                        
                         // Reset units column to 0 so child can start from the beginning
                         const resetCols = get().columns.map((col, i) =>
                             i === 0 ? { ...col, value: 0 } : col
@@ -2873,8 +2865,8 @@ export const useStore = create<MachineState>((set, get) => ({
                             phase: 'learn-carry'
                         });
                         get().updateButtonVisibility();
-                        sequenceFeedback("Prêt pour la magie ?  Tu vas voir l'échange 10 pour 1 !", "D'abord, compte jusqu'à 9 en cliquant sur VERT. Ensuite, la magie va opérer ! ");
-                        **/
+                       // sequenceFeedback("Prêt pour la magie ?  Tu vas voir l'échange 10 pour 1 !", "D'abord, compte jusqu'à 9 en cliquant sur VERT. Ensuite, la magie va opérer ! ");
+                        
                     } else {
                         // Moving to next challenge phase - do NOT call sendNextGoal() 
                         // because setPhase will send a new challenge list to Unity
@@ -2888,7 +2880,7 @@ export const useStore = create<MachineState>((set, get) => ({
                             columns: resetCols
                         });
                         get().setPhase(nextPhase);
-                        get().setFeedback(` DÉFI ${challengeIndex + 2} : Affiche le nombre **${UNIT_CHALLENGES[challengeIndex + 1].targets[0]}** puis clique sur VALIDER !`);
+                        get().setFeedback(`Affiche le nombre ${UNIT_CHALLENGES[challengeIndex + 1].targets[0]} puis clique sur VALIDER !`);
                     }
                 } else {
                     // Send next goal message to Unity
@@ -2902,7 +2894,7 @@ export const useStore = create<MachineState>((set, get) => ({
                         unitTargetIndex: unitTargetIndex + 1
                     });
                     get().updateInstruction();
-                    get().setFeedback(` DÉFI ${challengeIndex + 1} : Affiche le nombre **${challenge.targets[unitTargetIndex + 1]}** puis clique sur VALIDER ! (${newSuccessCount}/${challenge.targets.length})`);
+                    get().setFeedback(` Affiche le nombre ${challenge.targets[unitTargetIndex + 1]} puis clique sur VALIDER !`);
                 }
             });
         } else {
@@ -2990,7 +2982,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     const resetCols = initialColumns.map((col, i) => ({ ...col, unlocked: i === 0 || i === 1 }));
                     set({ tenToTwentyTargetIndex: tenToTwentyTargetIndex + 1, columns: resetCols });
                     get().updateInstruction();
-                    sequenceFeedback(`✅ Correct ! ${newSuccessCount}/${challenge.targets.length} réussis !`, `Maintenant affiche **${nextTarget}** !`);
+                    sequenceFeedback(`✅ Correct ! `, `Maintenant affiche ${nextTarget} !`);
                 }
             });
         } else {
@@ -3097,7 +3089,7 @@ export const useStore = create<MachineState>((set, get) => ({
                             columns: resetCols
                         });
                         get().setPhase(nextChallenge.phase);
-                        get().setFeedback(` DÉFI ${challengeIndex + 2} : Affiche le nombre **${nextChallenge.targets[0]}** !`);
+                        get().setFeedback(`Affiche le nombre ${nextChallenge.targets[0]} !`);
                     }
                 } else {
                     sendNextGoal();
@@ -3105,7 +3097,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     const resetCols = initialColumns.map((col, i) => ({ ...col, unlocked: i === 0 || i === 1 }));
                     set({ tensTargetIndex: tensTargetIndex + 1, columns: resetCols });
                     get().updateInstruction();
-                    sequenceFeedback(`✅ Correct ! ${newSuccessCount}/${challenge.targets.length} réussis !`, `Maintenant affiche **${nextTarget}** !`);
+                    sequenceFeedback(`✅ Correct ! ${newSuccessCount}/${challenge.targets.length} réussis !`, `Maintenant affiche ${nextTarget} !`);
                 }
             });
         } else {
@@ -3191,7 +3183,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     get().updateInstruction();
                     sequenceFeedback(
                         `✅ Correct ! ${newSuccessCount}/${challenge.targets.length} réussis !`,
-                        `Maintenant affiche **${nextTarget}** !`
+                        `Maintenant affiche ${nextTarget} !`
                     );
                 }
             });
@@ -3274,7 +3266,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     get().updateInstruction();
                     sequenceFeedback(
                         `✅ Correct ! ${newSuccessCount}/${challenge.targets.length} réussis !`,
-                        `Maintenant affiche **${nextTarget}** !`
+                        `Maintenant affiche ${nextTarget} !`
                     );
                 }
             });
@@ -3365,7 +3357,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     } else {
                         const nextChallenge = HUNDREDS_CHALLENGES[challengeIndex + 1];
                         sequenceFeedback(
-                            ` DÉFI ${challengeIndex + 2} : Affiche le nombre **${nextChallenge.targets[0]}** !`,
+                            ` DÉFI ${challengeIndex + 2} : Affiche le nombre ${nextChallenge.targets[0]} !`,
                             undefined,
                             () => {
                                 resetHundredsChallenge();
@@ -3384,7 +3376,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     get().updateInstruction();
                     sequenceFeedback(
                         `✅ Correct ! ${newSuccessCount}/${challenge.targets.length} réussis !`,
-                        `Maintenant affiche **${nextTarget}** !`
+                        `Maintenant affiche ${nextTarget} !`
                     );
                 }
             });
@@ -3469,7 +3461,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     get().updateInstruction();
                     sequenceFeedback(
                         `✅ Correct ! ${newSuccessCount}/${challenge.targets.length} réussis !`,
-                        `Maintenant affiche **${nextTarget}** !`
+                        `Maintenant affiche ${nextTarget} !`
                     );
                 }
             });
@@ -3549,7 +3541,7 @@ export const useStore = create<MachineState>((set, get) => ({
                     get().updateInstruction();
                     sequenceFeedback(
                         `✅ Correct ! ${newSuccessCount}/${challenge.targets.length} réussis !`,
-                        `Maintenant affiche **${nextTarget}** !`
+                        `Maintenant affiche ${nextTarget} !`
                     );
                 }
             });
@@ -3631,7 +3623,7 @@ export const useStore = create<MachineState>((set, get) => ({
                 const resetCols = initialColumns.map((col) => ({ ...col, unlocked: true }));
                 set({ thousandsSimpleCombinationTargetIndex: thousandsSimpleCombinationTargetIndex + 1, columns: resetCols });
                 get().updateInstruction();
-                sequenceFeedback(`✅ Correct ! ${newSuccessCount}/${challenge.targets.length} réussis !`, `Maintenant affiche **${nextTarget}** !`);
+                sequenceFeedback(`✅ Correct ! ${newSuccessCount}/${challenge.targets.length} réussis !`, `Maintenant affiche ${nextTarget} !`);
             }
         } else {
             // FAILURE - Generate progressive feedback
@@ -3717,7 +3709,7 @@ export const useStore = create<MachineState>((set, get) => ({
                             columns: resetCols
                         });
                         get().setPhase(nextChallenge.phase);
-                        get().setFeedback(` DÉFI ${challengeIndex + 2} : Affiche le nombre **${nextChallenge.targets[0]}** !`);
+                        get().setFeedback(` DÉFI ${challengeIndex + 2} : Affiche le nombre ${nextChallenge.targets[0]} !`);
                     }, FEEDBACK_DELAY * 2);
                 }
             } else {
@@ -3728,7 +3720,7 @@ export const useStore = create<MachineState>((set, get) => ({
                 const resetCols = get().columns.map((col: Column) => ({ ...col, unlocked: true }));
                 set({ thousandsTargetIndex: thousandsTargetIndex + 1, columns: resetCols });
                 get().updateInstruction();
-                sequenceFeedback(`✅ Correct ! ${newSuccessCount}/${challenge.targets.length} réussis !`, `Maintenant affiche **${nextTarget}** !`);
+                sequenceFeedback(`✅ Correct ! ${newSuccessCount}/${challenge.targets.length} réussis !`, `Maintenant affiche ${nextTarget} !`);
             }
         } else {
             // FAILURE - Generate progressive feedback
