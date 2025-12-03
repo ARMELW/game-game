@@ -54,8 +54,9 @@ export interface ITTSProvider {
   
   /**
    * Speak text
+   * Returns void or Promise<void> to support both sync and async implementations
    */
-  speak(text: string): void;
+  speak(text: string): void | Promise<void>;
   
   /**
    * Pause current speech

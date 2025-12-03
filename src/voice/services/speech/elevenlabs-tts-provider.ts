@@ -44,7 +44,10 @@ export class ElevenLabsTTSProvider implements ITTSProvider {
   readonly providerType = TTSProviderType.ElevenLabs;
   
   private static readonly API_BASE = 'https://api.elevenlabs.io/v1';
-  private static readonly DEFAULT_VOICE_ID = 'nPczCjzI2devNBz1zQrb'; // Brian - French voice
+  // Default voice: This is a sample voice ID. Users should configure their own voice
+  // via setVoiceId() or environment variable VITE_ELEVENLABS_VOICE_ID
+  // Find available voices at: https://elevenlabs.io/app/voice-library
+  private static readonly DEFAULT_VOICE_ID = 'nPczCjzI2devNBz1zQrb';
   private static readonly DEFAULT_MODEL = 'eleven_multilingual_v2';
   
   private callbacks: TTSCallbacks = {};
@@ -53,7 +56,7 @@ export class ElevenLabsTTSProvider implements ITTSProvider {
     pitch: 1,
     volume: 1,
     language: 'fr-FR',
-    voiceId: ElevenLabsTTSProvider.DEFAULT_VOICE_ID,
+    voiceId: import.meta.env.VITE_ELEVENLABS_VOICE_ID || ElevenLabsTTSProvider.DEFAULT_VOICE_ID,
     modelId: ElevenLabsTTSProvider.DEFAULT_MODEL,
     stability: 0.5,
     similarityBoost: 0.75,
@@ -70,14 +73,16 @@ export class ElevenLabsTTSProvider implements ITTSProvider {
     if (apiKey) {
       this.config.apiKey = apiKey;
     } else {
-      // Try to get from environment variable
-      this.config.apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY || import.meta.env.ELEVENLABS_TOKEN;
+      // Try to get from Vite environment variable (must be prefixed with VITE_)
+      this.config.apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
     }
     
     console.log('[ElevenLabsTTS] Constructor - API Key configured:', !!this.config.apiKey);
     
-    // Preload voices
-    this.loadVoices();
+    // Preload voices if API key is available
+    if (this.config.apiKey) {
+      this.loadVoices();
+    }
   }
 
   private async loadVoices(): Promise<void> {

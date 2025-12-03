@@ -113,24 +113,30 @@ class TextToSpeechService {
   /**
    * Récupère les voix disponibles
    * Returns in the format expected by existing code
+   * Note: When using ElevenLabs provider, returns a compatible structure
+   * that may not include all SpeechSynthesisVoice properties
    */
   getVoices(): SpeechSynthesisVoice[] {
     // For backward compatibility, return native voices if using native provider
-    // or map TTSVoice to a compatible format
     if (ttsManager.getCurrentProviderType() === TTSProviderType.Native) {
       return window.speechSynthesis?.getVoices() || [];
     }
     
-    // For ElevenLabs, return empty array (or map TTSVoice to SpeechSynthesisVoice-like objects)
+    // For ElevenLabs, create compatibility objects with required properties
+    // These objects implement the minimal interface needed by existing code
     const voices = ttsManager.getVoices();
-    // Create a compatible structure
-    return voices.map((voice: TTSVoice) => ({
-      name: voice.name,
-      lang: voice.language,
-      voiceURI: voice.id,
-      localService: voice.isLocal ?? false,
-      default: false
-    })) as unknown as SpeechSynthesisVoice[];
+    return voices.map((voice: TTSVoice): SpeechSynthesisVoice => {
+      // Create an object that satisfies the SpeechSynthesisVoice interface
+      const compatVoice = {
+        name: voice.name,
+        lang: voice.language,
+        voiceURI: voice.id,
+        localService: voice.isLocal ?? false,
+        default: false
+      };
+      // Return as SpeechSynthesisVoice - this is safe because we implement all required properties
+      return compatVoice as SpeechSynthesisVoice;
+    });
   }
 
   /**
