@@ -1,10 +1,14 @@
 /**
  * ElevenLabs TTS Provider
  * 
- * Uses the ElevenLabs API for high-quality text-to-speech
- * This is a browser-compatible implementation using the REST API
+ * Uses the official ElevenLabs JavaScript SDK for high-quality text-to-speech.
+ * This is a browser-compatible implementation that uses the SDK's textToSpeech.convert()
+ * method and plays audio using HTMLAudioElement (since SDK's play() is Node.js only).
+ * 
+ * @see https://github.com/elevenlabs/elevenlabs-js
  */
 
+import { ElevenLabsClient, ElevenLabs } from '@elevenlabs/elevenlabs-js';
 import type { 
   ITTSProvider, 
   TTSCallbacks, 
@@ -15,41 +19,35 @@ import type {
 import { TTSProviderType } from './tts-provider.interface';
 
 /**
+ * Output format type from ElevenLabs SDK
+ */
+type OutputFormat = ElevenLabs.TextToSpeechConvertRequestOutputFormat;
+
+/**
  * ElevenLabs specific configuration
  */
 export interface ElevenLabsConfig extends TTSConfig {
   apiKey?: string;
   voiceId?: string;
   modelId?: string;
+  outputFormat?: OutputFormat;
   stability?: number;      // 0 to 1
   similarityBoost?: number; // 0 to 1
   style?: number;          // 0 to 1
   useSpeakerBoost?: boolean;
 }
 
-/**
- * ElevenLabs voice response structure
- */
-interface ElevenLabsVoiceResponse {
-  voices: Array<{
-    voice_id: string;
-    name: string;
-    category?: string;
-    labels?: Record<string, string>;
-    preview_url?: string;
-  }>;
-}
-
 export class ElevenLabsTTSProvider implements ITTSProvider {
   readonly providerType = TTSProviderType.ElevenLabs;
   
-  private static readonly API_BASE = 'https://api.elevenlabs.io/v1';
   // Default voice: This is a sample voice ID. Users should configure their own voice
   // via setVoiceId() or environment variable VITE_ELEVENLABS_VOICE_ID
   // Find available voices at: https://elevenlabs.io/app/voice-library
   private static readonly DEFAULT_VOICE_ID = 'nPczCjzI2devNBz1zQrb';
   private static readonly DEFAULT_MODEL = 'eleven_multilingual_v2';
+  private static readonly DEFAULT_OUTPUT_FORMAT: OutputFormat = 'mp3_44100_128';
   
+  private client: ElevenLabsClient | null = null;
   private callbacks: TTSCallbacks = {};
   private config: ElevenLabsConfig = {
     rate: 1,
@@ -58,6 +56,7 @@ export class ElevenLabsTTSProvider implements ITTSProvider {
     language: 'fr-FR',
     voiceId: import.meta.env.VITE_ELEVENLABS_VOICE_ID || ElevenLabsTTSProvider.DEFAULT_VOICE_ID,
     modelId: ElevenLabsTTSProvider.DEFAULT_MODEL,
+    outputFormat: ElevenLabsTTSProvider.DEFAULT_OUTPUT_FORMAT,
     stability: 0.5,
     similarityBoost: 0.75,
     style: 0,
@@ -70,49 +69,38 @@ export class ElevenLabsTTSProvider implements ITTSProvider {
   private cachedVoices: TTSVoice[] = [];
 
   constructor(apiKey?: string) {
-    if (apiKey) {
-      this.config.apiKey = apiKey;
-    } else {
-      // Try to get from Vite environment variable (must be prefixed with VITE_)
-      this.config.apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
+    const key = apiKey || import.meta.env.VITE_ELEVENLABS_API_KEY;
+    
+    if (key) {
+      this.config.apiKey = key;
+      this.client = new ElevenLabsClient({ apiKey: key });
     }
     
-    console.log('[ElevenLabsTTS] Constructor - API Key configured:', !!this.config.apiKey);
+    console.log('[ElevenLabsTTS] Constructor - Using official SDK, API Key configured:', !!this.config.apiKey);
     
     // Preload voices if API key is available
-    if (this.config.apiKey) {
+    if (this.client) {
       this.loadVoices();
     }
   }
 
   private async loadVoices(): Promise<void> {
-    if (!this.config.apiKey) {
-      console.warn('[ElevenLabsTTS] No API key, cannot load voices');
+    if (!this.client) {
+      console.warn('[ElevenLabsTTS] No client configured, cannot load voices');
       return;
     }
     
     try {
-      const response = await fetch(`${ElevenLabsTTSProvider.API_BASE}/voices`, {
-        method: 'GET',
-        headers: {
-          'xi-api-key': this.config.apiKey
-        }
-      });
+      const response = await this.client.voices.getAll();
       
-      if (!response.ok) {
-        throw new Error(`Failed to fetch voices: ${response.status}`);
-      }
-      
-      const data: ElevenLabsVoiceResponse = await response.json();
-      
-      this.cachedVoices = data.voices.map(voice => ({
-        id: voice.voice_id,
-        name: voice.name,
+      this.cachedVoices = response.voices.map(voice => ({
+        id: voice.voiceId,
+        name: voice.name ?? 'Unknown',
         language: voice.labels?.language || 'multilingual',
         isLocal: false
       }));
       
-      console.log('[ElevenLabsTTS] Loaded', this.cachedVoices.length, 'voices');
+      console.log('[ElevenLabsTTS] Loaded', this.cachedVoices.length, 'voices using SDK');
     } catch (error) {
       console.error('[ElevenLabsTTS] Failed to load voices:', error);
     }
@@ -125,13 +113,13 @@ export class ElevenLabsTTSProvider implements ITTSProvider {
       return;
     }
     
-    if (!this.isSupported()) {
+    if (!this.isSupported() || !this.client) {
       console.error('[ElevenLabsTTS] ElevenLabs not configured.');
       this.callbacks.onError?.('ElevenLabs not configured - missing API key');
       return;
     }
     
-    console.log('[ElevenLabsTTS] speak() called with:', text.substring(0, 50) + '...');
+    console.log('[ElevenLabsTTS] speak() called with:', text.substring(0, 50) + (text.length > 50 ? '...' : ''));
     
     // Stop current speech
     this.stop();
@@ -141,34 +129,22 @@ export class ElevenLabsTTSProvider implements ITTSProvider {
       this.callbacks.onStart?.();
       
       const voiceId = this.config.voiceId || ElevenLabsTTSProvider.DEFAULT_VOICE_ID;
-      const response = await fetch(
-        `${ElevenLabsTTSProvider.API_BASE}/text-to-speech/${voiceId}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'xi-api-key': this.config.apiKey!
-          },
-          body: JSON.stringify({
-            text,
-            model_id: this.config.modelId || ElevenLabsTTSProvider.DEFAULT_MODEL,
-            voice_settings: {
-              stability: this.config.stability ?? 0.5,
-              similarity_boost: this.config.similarityBoost ?? 0.75,
-              style: this.config.style ?? 0,
-              use_speaker_boost: this.config.useSpeakerBoost ?? true
-            }
-          })
+      
+      // Use the official SDK's textToSpeech.convert() method
+      const audioStream = await this.client.textToSpeech.convert(voiceId, {
+        text,
+        modelId: this.config.modelId || ElevenLabsTTSProvider.DEFAULT_MODEL,
+        outputFormat: this.config.outputFormat || ElevenLabsTTSProvider.DEFAULT_OUTPUT_FORMAT,
+        voiceSettings: {
+          stability: this.config.stability ?? 0.5,
+          similarityBoost: this.config.similarityBoost ?? 0.75,
+          style: this.config.style ?? 0,
+          useSpeakerBoost: this.config.useSpeakerBoost ?? true
         }
-      );
+      });
       
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`ElevenLabs API error: ${response.status} - ${errorText}`);
-      }
-      
-      // Get audio blob and play it
-      const audioBlob = await response.blob();
+      // Convert the ReadableStream to a Blob for browser playback
+      const audioBlob = await this.streamToBlob(audioStream);
       await this.playAudioBlob(audioBlob);
       
     } catch (error) {
@@ -176,6 +152,16 @@ export class ElevenLabsTTSProvider implements ITTSProvider {
       this.isSpeaking = false;
       this.callbacks.onError?.(error instanceof Error ? error.message : 'Unknown error');
     }
+  }
+
+  /**
+   * Convert a ReadableStream to a Blob for browser playback
+   * (SDK's play() function is Node.js only, so we need browser-compatible playback)
+   */
+  private async streamToBlob(stream: ReadableStream<Uint8Array>): Promise<Blob> {
+    // Use Response API to convert stream to blob - this is the most browser-compatible approach
+    const response = new Response(stream);
+    return await response.blob();
   }
 
   private async playAudioBlob(blob: Blob): Promise<void> {
@@ -278,6 +264,8 @@ export class ElevenLabsTTSProvider implements ITTSProvider {
    */
   setApiKey(apiKey: string): void {
     this.config.apiKey = apiKey;
+    // Reinitialize client with new key
+    this.client = new ElevenLabsClient({ apiKey });
     // Reload voices with new key
     this.loadVoices();
   }
