@@ -95,7 +95,7 @@ export class ElevenLabsTTSProvider implements ITTSProvider {
       
       this.cachedVoices = response.voices.map(voice => ({
         id: voice.voiceId,
-        name: voice.name ?? 'Unknown',
+        name: voice.name ?? 'Unnamed Voice',
         language: voice.labels?.language || 'multilingual',
         isLocal: false
       }));
