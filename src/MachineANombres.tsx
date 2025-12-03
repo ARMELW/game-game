@@ -1,8 +1,9 @@
 import { useEffect, useCallback, useMemo, useState, useRef } from "react";
-import { useStore } from "./store.ts";
+import { useStore, initialColumns } from "./store.ts";
 import { UnityGame } from "./components/UnityGame";
 import { parse, useUnity } from "./hooks/useUnity";
 import { UI_MESSAGES } from "./instructions.ts";
+import { DIDACTICIEL_REQUIRED_CLICKS } from "./types.ts";
 
 
 function formatNumber(num: number, length = 4) {
@@ -113,12 +114,7 @@ function MachineANombres() {
       if (didacticielStep1UpClicks >= 3 && didacticielStep1DownClicks >= 3) {
         // Transition to step 2
         const { setPhase, setColumns } = useStore.getState();
-        const newCols = [
-          { name: 'Unités', value: 0, unlocked: true, color: 'bg-green-500' },
-          { name: 'Dizaines', value: 0, unlocked: true, color: 'bg-blue-500' },
-          { name: 'Centaines', value: 0, unlocked: true, color: 'bg-yellow-500' },
-          { name: 'Milliers', value: 0, unlocked: true, color: 'bg-red-500' },
-        ];
+        const newCols = initialColumns.map(col => ({ ...col, value: 0, unlocked: true }));
         setColumns(newCols);
         setPhase('didacticiel-step2-columns');
       }

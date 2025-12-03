@@ -19,6 +19,7 @@ import {
     THOUSANDS_CHALLENGES,
     ALL_PHASES,
     DIDACTICIEL_STEP2_CHALLENGES,
+    DIDACTICIEL_REQUIRED_CLICKS,
     getRandomDidacticielNumber,
 } from './types.ts';
 import {
@@ -1115,7 +1116,7 @@ export const useStore = create<MachineState>((set, get) => ({
         const allColumnsUnlocked = columns.every(col => col.unlocked);
 
         // Check if step 1 of didacticiel is complete
-        const isStep1Complete = didacticielStep1UpClicks >= 3 && didacticielStep1DownClicks >= 3;
+        const isStep1Complete = didacticielStep1UpClicks >= DIDACTICIEL_REQUIRED_CLICKS && didacticielStep1DownClicks >= DIDACTICIEL_REQUIRED_CLICKS;
 
         set({
             showUnlockButton: phase === 'normal' && !allColumnsUnlocked,
@@ -4071,7 +4072,7 @@ export const useStore = create<MachineState>((set, get) => ({
             case 'didacticiel-step1-buttons': {
                 const { didacticielStep1UpClicks, didacticielStep1DownClicks } = get();
                 const step1Instructions = PHASE_INSTRUCTIONS['didacticiel-step1-buttons'];
-                if (didacticielStep1UpClicks >= 3 && didacticielStep1DownClicks >= 3) {
+                if (didacticielStep1UpClicks >= DIDACTICIEL_REQUIRED_CLICKS && didacticielStep1DownClicks >= DIDACTICIEL_REQUIRED_CLICKS) {
                     newInstruction = step1Instructions.complete;
                 } else if (didacticielStep1UpClicks > 0 || didacticielStep1DownClicks > 0) {
                     newInstruction = step1Instructions.progress(didacticielStep1UpClicks, didacticielStep1DownClicks);
@@ -4707,8 +4708,8 @@ Tu veux :
                 setValue(newCols[0].value);
             }
             
-            if (newUpClicks === 3 && didacticielStep1DownClicks < 3) {
-                speakAndThen("Parfait ! Tu as cliqué 3 fois sur Haut ! Maintenant clique 3 fois sur Bas !");
+            if (newUpClicks === DIDACTICIEL_REQUIRED_CLICKS && didacticielStep1DownClicks < DIDACTICIEL_REQUIRED_CLICKS) {
+                speakAndThen(`Parfait ! Tu as cliqué ${DIDACTICIEL_REQUIRED_CLICKS} fois sur Haut ! Maintenant clique ${DIDACTICIEL_REQUIRED_CLICKS} fois sur Bas !`);
             }
         } else if (direction === 'down') {
             const newDownClicks = didacticielStep1DownClicks + 1;
@@ -4721,7 +4722,7 @@ Tu veux :
                 setValue(newCols[0].value);
             }
             
-            if (newDownClicks === 3 && didacticielStep1UpClicks >= 3) {
+            if (newDownClicks === DIDACTICIEL_REQUIRED_CLICKS && didacticielStep1UpClicks >= DIDACTICIEL_REQUIRED_CLICKS) {
                 // Step 1 complete - show validate message
                 sequenceFeedback(
                     "Bravo ! Tu as bien compris les boutons Haut et Bas !",
@@ -4736,7 +4737,7 @@ Tu veux :
         // Update progress feedback
         const currentUp = get().didacticielStep1UpClicks;
         const currentDown = get().didacticielStep1DownClicks;
-        if (currentUp < 3 || currentDown < 3) {
+        if (currentUp < DIDACTICIEL_REQUIRED_CLICKS || currentDown < DIDACTICIEL_REQUIRED_CLICKS) {
             set({ feedback: `Haut: ${currentUp}/3 | Bas: ${currentDown}/3` });
         }
     },

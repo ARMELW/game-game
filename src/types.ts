@@ -171,6 +171,9 @@ export type Challenge = {
 
 export const FEEDBACK_DELAY = 2500;
 
+// Simplified tutorial constants
+export const DIDACTICIEL_REQUIRED_CLICKS = 3; // Number of clicks required for step 1 (both up and down)
+
 export const TUTORIAL_CHALLENGE: Challenge = {
   phase: 'tutorial-challenge',
   targets: [3] // Just one simple value to learn validation
