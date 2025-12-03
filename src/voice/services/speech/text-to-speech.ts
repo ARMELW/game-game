@@ -1,8 +1,13 @@
 import { defaultPersonaConfig, type PersonaConfig } from './persona.types';
+import { ttsManager, TTSProviderType } from './tts-manager';
+import type { TTSVoice } from './tts-provider.interface';
 
 /**
  * Service global de synthèse vocale (Text-to-Speech)
- * Utilise l'API Web Speech Synthesis
+ * 
+ * This is a facade that uses TTSManager internally.
+ * It maintains backward compatibility with existing code while
+ * allowing provider switching between Native and ElevenLabs.
  */
 
 export interface TextToSpeechConfig {
@@ -21,30 +26,20 @@ export interface TextToSpeechCallbacks {
 }
 
 class TextToSpeechService {
-  private synthesis: SpeechSynthesis;
-  private currentUtterance: SpeechSynthesisUtterance | null = null;
-  private callbacks: TextToSpeechCallbacks = {};
+  private personaConfig: PersonaConfig = defaultPersonaConfig;
   private voiceConfig: TextToSpeechConfig = {
     rate: 1,
     pitch: 1,
     volume: 1
   };
-  private personaConfig: PersonaConfig = defaultPersonaConfig;
 
   constructor() {
-    this.synthesis = window.speechSynthesis;
+    console.log('[TTS] Constructor - Using TTSManager with provider:', ttsManager.getCurrentProviderType());
     
-    // Test simple pour voir si les voix se chargent
-    console.log('[TTS] Constructor - Voix disponibles immédiatement :', this.getVoices().length);
-    
-    // Attendre le chargement des voix
+    // Log voice loading status
     setTimeout(() => {
-      console.log('[TTS] Après 1s - Voix disponibles :', this.getVoices().length);
+      console.log('[TTS] After 1s - Voices available:', this.getVoices().length);
     }, 1000);
-    
-    this.synthesis.onvoiceschanged = () => {
-      console.log('[TTS] onvoiceschanged - Voix disponibles :', this.getVoices().length);
-    };
   }
 
   /**
@@ -52,85 +47,30 @@ class TextToSpeechService {
    */
   testSpeak(): void {
     console.log('[TTS] testSpeak() appelé');
-    const utterance = new SpeechSynthesisUtterance('Bonjour test');
-    utterance.onstart = () => console.log('[TTS] Test onstart');
-    utterance.onend = () => console.log('[TTS] Test onend');
-    utterance.onerror = (e) => console.log('[TTS] Test onerror:', e);
-    this.synthesis.speak(utterance);
-    console.log('[TTS] synthesis.speak() appelé pour test');
-  }
-
-  private createUtterance(text: string): SpeechSynthesisUtterance {
-    const utterance = new SpeechSynthesisUtterance(text);
-
-    // Configuration de la voix
-    utterance.lang = this.personaConfig.language;
-    utterance.rate = this.voiceConfig.rate || 1;
-    utterance.pitch = this.voiceConfig.pitch || 1;
-    utterance.volume = this.voiceConfig.volume || 1;
-
-    // Sélection de la voix si spécifiée
-    if (this.voiceConfig.voice) {
-      const voices = this.getVoices();
-      const selectedVoice = voices.find(
-        voice =>
-          voice.name === this.voiceConfig.voice ||
-          voice.lang === this.voiceConfig.voice
-      );
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
-      }
-    }
-
-    // Capture callbacks in closure to avoid race condition when stop() is called
-    // This ensures each utterance has its own callback references
-    const capturedCallbacks = { ...this.callbacks };
-
-    // Événements
-    utterance.onstart = () => {
-      capturedCallbacks.onStart?.();
-    };
-
-    utterance.onend = () => {
-      // Only process if this utterance is still the current one
-      if (this.currentUtterance === utterance) {
-        this.currentUtterance = null;
-        this.callbacks = {};
-      }
-      capturedCallbacks.onEnd?.();
-    };
-
-    utterance.onerror = (event) => {
-      // Only process if this utterance is still the current one
-      if (this.currentUtterance === utterance) {
-        this.currentUtterance = null;
-        this.callbacks = {};
-      }
-      capturedCallbacks.onError?.(event.error);
-    };
-
-    utterance.onpause = () => {
-      capturedCallbacks.onPause?.();
-    };
-
-    utterance.onresume = () => {
-      capturedCallbacks.onResume?.();
-    };
-
-    return utterance;
+    this.speak('Bonjour test');
+    console.log('[TTS] speak() appelé pour test');
   }
 
   setCallbacks(callbacks: TextToSpeechCallbacks) {
-    // Replace callbacks instead of merging to avoid callback pollution from previous utterances
-    this.callbacks = callbacks;
+    ttsManager.setCallbacks(callbacks);
   }
 
   setVoiceConfig(config: Partial<TextToSpeechConfig>) {
     this.voiceConfig = { ...this.voiceConfig, ...config };
+    ttsManager.setConfig({
+      voice: config.voice,
+      rate: config.rate,
+      pitch: config.pitch,
+      volume: config.volume,
+      language: this.personaConfig.language
+    });
   }
 
   setPersona(config: Partial<PersonaConfig>) {
     this.personaConfig = { ...this.personaConfig, ...config };
+    ttsManager.setConfig({
+      language: this.personaConfig.language
+    });
   }
 
   getPersona(): PersonaConfig {
@@ -143,56 +83,60 @@ class TextToSpeechService {
   speak(text: string): void {
     if (!text.trim()) {
       console.warn('[TTS] Texte vide, rien à lire.');
-      this.callbacks.onError?.('Texte vide');
       return;
     }
-    if (!this.isSupported()) {
-      console.error('[TTS] Synthèse vocale non supportée.');
-      this.callbacks.onError?.('Synthèse non supportée');
-      return;
-    }
-    console.log('[TTS] speak() appelé avec :', text);
-    // Arrêter la lecture en cours
-    this.stop();
-
-    // Créer et lancer la nouvelle lecture
-    this.currentUtterance = this.createUtterance(text);
-    this.synthesis.speak(this.currentUtterance);
+    console.log('[TTS] speak() appelé avec :', text.substring(0, 50) + (text.length > 50 ? '...' : ''));
+    ttsManager.speak(text);
   }
 
   /**
    * Met en pause la lecture en cours
    */
   pause(): void {
-    if (this.synthesis.speaking && !this.synthesis.paused) {
-      this.synthesis.pause();
-    }
+    ttsManager.pause();
   }
 
   /**
    * Reprend la lecture en pause
    */
   resume(): void {
-    if (this.synthesis.paused) {
-      this.synthesis.resume();
-    }
+    ttsManager.resume();
   }
 
   /**
    * Arrête complètement la lecture
    */
   stop(): void {
-    if (this.synthesis.speaking) {
-      this.synthesis.cancel();
-    }
-    this.currentUtterance = null;
+    ttsManager.stop();
   }
 
   /**
    * Récupère les voix disponibles
+   * Returns in the format expected by existing code
+   * Note: When using ElevenLabs provider, returns a compatible structure
+   * that may not include all SpeechSynthesisVoice properties
    */
   getVoices(): SpeechSynthesisVoice[] {
-    return this.synthesis.getVoices();
+    // For backward compatibility, return native voices if using native provider
+    if (ttsManager.getCurrentProviderType() === TTSProviderType.Native) {
+      return window.speechSynthesis?.getVoices() || [];
+    }
+    
+    // For ElevenLabs, create compatibility objects with required properties
+    // These objects implement the minimal interface needed by existing code
+    const voices = ttsManager.getVoices();
+    return voices.map((voice: TTSVoice): SpeechSynthesisVoice => {
+      // Create an object that satisfies the SpeechSynthesisVoice interface
+      const compatVoice = {
+        name: voice.name,
+        lang: voice.language,
+        voiceURI: voice.id,
+        localService: voice.isLocal ?? false,
+        default: false
+      };
+      // Return as SpeechSynthesisVoice - this is safe because we implement all required properties
+      return compatVoice as SpeechSynthesisVoice;
+    });
   }
 
   /**
@@ -206,21 +150,72 @@ class TextToSpeechService {
    * État de la synthèse vocale
    */
   getStatus() {
-    return {
-      speaking: this.synthesis.speaking,
-      paused: this.synthesis.paused,
-      pending: this.synthesis.pending,
-      hasCurrentUtterance: this.currentUtterance !== null
-    };
+    return ttsManager.getStatus();
   }
 
   /**
    * Vérifie si la synthèse vocale est supportée
    */
   isSupported(): boolean {
-    return 'speechSynthesis' in window;
+    return ttsManager.isSupported();
+  }
+
+  // =============================================
+  // New methods for provider management
+  // =============================================
+
+  /**
+   * Get current TTS provider type
+   */
+  getCurrentProviderType(): TTSProviderType {
+    return ttsManager.getCurrentProviderType();
+  }
+
+  /**
+   * Switch to a different TTS provider
+   */
+  switchProvider(providerType: TTSProviderType): boolean {
+    return ttsManager.switchProvider(providerType);
+  }
+
+  /**
+   * Get available TTS providers
+   */
+  getAvailableProviders(): TTSProviderType[] {
+    return ttsManager.getAvailableProviders();
+  }
+
+  /**
+   * Check if a specific provider is available
+   */
+  isProviderAvailable(providerType: TTSProviderType): boolean {
+    return ttsManager.isProviderAvailable(providerType);
+  }
+
+  /**
+   * Configure ElevenLabs provider
+   */
+  configureElevenLabs(config: { apiKey?: string; voiceId?: string; modelId?: string }): void {
+    ttsManager.configureElevenLabs(config);
+  }
+
+  /**
+   * Set ElevenLabs API key
+   */
+  setElevenLabsApiKey(apiKey: string): void {
+    ttsManager.setElevenLabsApiKey(apiKey);
+  }
+
+  /**
+   * Set ElevenLabs voice
+   */
+  setElevenLabsVoice(voiceId: string): void {
+    ttsManager.setElevenLabsVoice(voiceId);
   }
 }
 
 // Instance globale
 export const textToSpeechService = new TextToSpeechService();
+
+// Re-export TTSProviderType for convenience
+export { TTSProviderType };

@@ -318,19 +318,13 @@ export const useStore = create<MachineState>((set, get) => ({
                 const unityReady = unityLoaded && unityLoadingProgression >= 1.0;
 
                 if (ttsReady && unityReady) {
-                    // Both are ready, transition to intro
-                    console.log('[setPhase] TTS and Unity ready, transitioning to intro-welcome');
-                     set({ phase: 'intro-welcome', timer: null });
-                        get().updateButtonVisibility();
-                        get().updateInstruction();
+                    // Both are ready, transition to didacticiel-step1-buttons
+                    console.log('[setPhase] TTS and Unity ready, transitioning to didacticiel-step1-buttons');
+                    get().startSimplifiedTutorial();
                 } else if (checkCount >= MAX_CHECKS) {
                     // Timeout after max checks - proceed anyway
-                    console.log('[setPhase] Loading timeout, proceeding to intro anyway (TTS ready:', ttsReady + ', Unity ready:', unityReady + ')');
-                    
-                        set({ phase: 'intro-welcome', timer: null });
-                        get().updateButtonVisibility();
-                        get().updateInstruction();
-                   
+                    console.log('[setPhase] Loading timeout, proceeding to didacticiel anyway (TTS ready:', ttsReady + ', Unity ready:', unityReady + ')');
+                    get().startSimplifiedTutorial();
                 } else {
                     // Not ready yet, check again
                     const waitingFor = [];
