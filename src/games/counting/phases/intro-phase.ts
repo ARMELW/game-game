@@ -6,6 +6,7 @@ import { PhaseBase } from "../../core/phases/abstract-phase";
 export class IntroPhase extends PhaseBase {
   private static readonly DEFAULT_VALUE = '0000';
   private static readonly VALUE_LENGTH = 4;
+  private static readonly PAD_CHARACTER = '0';
   
   private currentValue = IntroPhase.DEFAULT_VALUE;
 
@@ -22,8 +23,8 @@ export class IntroPhase extends PhaseBase {
       console.log('Unity message received:', data);
       
       // Extract and format the value
-      const valueStr = data.value || '0';
-      this.currentValue = valueStr.padStart(IntroPhase.VALUE_LENGTH, '0');
+      const valueStr = data.value || IntroPhase.PAD_CHARACTER;
+      this.currentValue = valueStr.padStart(IntroPhase.VALUE_LENGTH, IntroPhase.PAD_CHARACTER);
       
       console.log('Current value updated:', this.currentValue);
     });

@@ -16,25 +16,31 @@ export class UnityBridge extends AbstractBridge {
 
 
   protected setupReceiver(): void {
+    const SET_VALUE_PREFIX = 'SetValue';
+    const SET_VALUE_PATTERN = /set value (\d+)/i;
+    
     // Configurer window.onUnityMessage pour recevoir les messages de Unity
     (window as any).onUnityMessage = (message: string) => {
       console.log('[Unity Bridge] Raw message from Unity:', message);
-      
-      const SET_VALUE_PREFIX = 'SetValue';
       
       // Parser le message de Unity
       // Unity envoie soit "SetValueX" où X est la nouvelle valeur
       // soit "set value X" (avec espace et minuscules)
       if (message.startsWith(SET_VALUE_PREFIX)) {
         const value = message.substring(SET_VALUE_PREFIX.length);
-        this.receiveMessage({
-          type: 'SetValueUpdate',
-          data: { value },
-          timestamp: Date.now()
-        });
+        // Valider que la valeur extraite est numérique
+        if (value && /^\d+$/.test(value)) {
+          this.receiveMessage({
+            type: 'SetValueUpdate',
+            data: { value },
+            timestamp: Date.now()
+          });
+        } else {
+          console.warn('[Unity Bridge] Invalid SetValue format:', message);
+        }
       } else {
         // Essayer de matcher le pattern "set value X" avec regex
-        const match = message.match(/set value (\d+)/i);
+        const match = message.match(SET_VALUE_PATTERN);
         if (match) {
           const value = match[1];
           this.receiveMessage({
