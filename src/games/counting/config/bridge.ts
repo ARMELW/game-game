@@ -20,11 +20,13 @@ export class UnityBridge extends AbstractBridge {
     (window as any).onUnityMessage = (message: string) => {
       console.log('[Unity Bridge] Raw message from Unity:', message);
       
+      const SET_VALUE_PREFIX = 'SetValue';
+      
       // Parser le message de Unity
       // Unity envoie soit "SetValueX" où X est la nouvelle valeur
       // soit "set value X" (avec espace et minuscules)
-      if (message.startsWith('SetValue')) {
-        const value = message.substring(8); // Extraire la valeur après "SetValue"
+      if (message.startsWith(SET_VALUE_PREFIX)) {
+        const value = message.substring(SET_VALUE_PREFIX.length);
         this.receiveMessage({
           type: 'SetValueUpdate',
           data: { value },

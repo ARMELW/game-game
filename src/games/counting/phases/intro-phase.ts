@@ -4,7 +4,10 @@ import { PhaseBase } from "../../core/phases/abstract-phase";
  * Phase d'introduction du quiz
  */
 export class IntroPhase extends PhaseBase {
-  private currentValue = '0000';
+  private static readonly DEFAULT_VALUE = '0000';
+  private static readonly VALUE_LENGTH = 4;
+  
+  private currentValue = IntroPhase.DEFAULT_VALUE;
 
   constructor() {
     super('interactive', 'Phase Interactive');
@@ -20,7 +23,7 @@ export class IntroPhase extends PhaseBase {
       
       // Extract and format the value
       const valueStr = data.value || '0';
-      this.currentValue = valueStr.padStart(4, '0');
+      this.currentValue = valueStr.padStart(IntroPhase.VALUE_LENGTH, '0');
       
       console.log('Current value updated:', this.currentValue);
     });
