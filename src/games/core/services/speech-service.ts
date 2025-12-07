@@ -2,6 +2,7 @@
 import type { ISpeechProvider, SpeechConfig, SpeechCallbacks } from '../types/speech.types';
 import { WebSpeechProvider } from '../providers/web-speech-provider';
 import { ElevenLabsProvider } from '../providers/elevenlabs-provider';
+import { SPEECH_CONFIG } from '../config/speech-config';
 
 type ProviderType = 'web' | 'elevenlabs';
 
@@ -25,6 +26,9 @@ export class SpeechService {
     } else {
       this.provider = new WebSpeechProvider();
     }
+
+    // Configurer avec les paramètres par défaut
+    this.provider.setConfig(SPEECH_CONFIG.defaultConfig);
   }
 
   // Changer de provider à la volée
