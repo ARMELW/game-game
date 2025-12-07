@@ -1,4 +1,5 @@
 import { PhaseBase } from "../../core/phases/abstract-phase";
+import type { TutorialGameState } from "./index";
 
 /**
  * Phase 1: Découverte des boutons
@@ -47,7 +48,8 @@ export class DiscoveryPhase extends PhaseBase {
     // Extraire la valeur du payload
     const valueStr = data.value || '0';
     const currentValue = parseInt(valueStr, 10);
-    const lastValue = (this.getGameState() as { lastValue?: number })?.lastValue || 0;
+    const gameState = this.getGameState() as TutorialGameState;
+    const lastValue = gameState.lastValue || 0;
 
     if (currentValue > lastValue) {
       this.upClicks++;

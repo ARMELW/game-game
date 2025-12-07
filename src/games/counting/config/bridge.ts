@@ -1,7 +1,7 @@
 import { MESSAGE_REGISTRY } from "./message";
 import { AbstractBridge } from "../../core/services/abstract-bridge";
 export class UnityBridge extends AbstractBridge {
-  private sendMessageCallback: ((gameObjectName: string, methodName: string, parameter?: string | number | undefined | void) => void) | null = null;
+  private sendMessageCallback: ((gameObjectName: string, methodName: string, parameter?: string | number) => void) | null = null;
   private checkReadyInterval: number | null = null;
 
   constructor(debug: boolean = false) {
@@ -9,7 +9,7 @@ export class UnityBridge extends AbstractBridge {
     this.setupReceiver();
   }
 
-  public setSendMessage(sendMessage: (gameObjectName: string, methodName: string, parameter?: string | number | undefined | void) => void) {
+  public setSendMessage(sendMessage: (gameObjectName: string, methodName: string, parameter?: string | number) => void) {
     this.sendMessageCallback = sendMessage;
     this.setReady(true);
   }

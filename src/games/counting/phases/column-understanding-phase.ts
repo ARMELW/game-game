@@ -99,7 +99,7 @@ export class ColumnUnderstandingPhase extends PhaseBase {
 
     // Afficher l'instruction
     this.updateGameState({
-      message: `Formez le nombre: ${targetNumber}\nRéglez ${digitName} sur ${targetDigit}`,
+      message: `Formez le nombre: ${targetNumber} - Réglez ${digitName} sur ${targetDigit}`,
       targetNumber: targetNumber,
       currentDigit: digitName,
       showValidateButton: false

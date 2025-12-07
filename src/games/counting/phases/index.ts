@@ -5,7 +5,7 @@ import { DiscoveryPhase } from "./discovery-phase";
 import { ColumnUnderstandingPhase } from "./column-understanding-phase";
 import { FreePracticePhase } from "./free-practice-phase";
 
-interface TutorialGameState {
+export interface TutorialGameState {
     message: string;
     progress: string;
     showValidateButton: boolean;
