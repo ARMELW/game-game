@@ -1,5 +1,5 @@
 import { PhaseBase } from "../../core/phases/abstract-phase";
-import { appEventHub } from "../config/event";
+
 /**
  * Phase d'introduction du quiz
  */
@@ -7,7 +7,7 @@ export class IntroPhase extends PhaseBase {
 
     constructor() {
         super('interactive', 'Phase Interactive');
-        window.onUnityMessage = (message: any) => {
+        (window as any).onUnityMessage = (message: any) => {
             console.log('Unity message received:mec', message);
 
         };

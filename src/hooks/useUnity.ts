@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useUnityContext } from 'react-unity-webgl';
 import { QuizGameOrchestrator } from '../games/counting/phases';
 import { quizStateManager } from '../games/counting/config/state';
+import { unityBridge } from '../games/counting/config/bridge';
 
 export function useUnity() {
   const orchestratorRef = useRef<QuizGameOrchestrator | null>(null);
@@ -22,6 +23,9 @@ export function useUnity() {
 
   useEffect(() => {
     if (loadingProgression === 1 && !isInitializedRef.current) {
+      // Configurer le bridge avec la fonction sendMessage de Unity
+      unityBridge.setSendMessage(sendMessage);
+
       orchestratorRef.current = new QuizGameOrchestrator(quizStateManager);
       orchestratorRef.current.initialize();
 
@@ -29,7 +33,7 @@ export function useUnity() {
 
       console.log('Orchestrateur initialisé');
     }
-  }, [loadingProgression]);
+  }, [loadingProgression, sendMessage]);
 
   useEffect(() => {
     return () => {

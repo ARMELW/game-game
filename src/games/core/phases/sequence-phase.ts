@@ -1,4 +1,3 @@
-import { StateManager } from "./state-manager";
 import { PhaseBase } from "./abstract-phase";
 
 /**

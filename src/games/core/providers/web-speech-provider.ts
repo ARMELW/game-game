@@ -3,7 +3,7 @@ import type { ISpeechProvider, SpeechConfig, SpeechCallbacks } from '../types/sp
 
 class WebSpeechProvider implements ISpeechProvider {
   private synthesis: SpeechSynthesis;
-  private currentUtterance: SpeechSynthesisUtterance | null = null;
+  private _currentUtterance: SpeechSynthesisUtterance | null = null;
   private config: SpeechConfig = {
     lang: 'fr-FR',
     rate: 0.9,
@@ -12,7 +12,7 @@ class WebSpeechProvider implements ISpeechProvider {
   };
   private callbacks: SpeechCallbacks = {};
   private speaking: boolean = false;
-  private voicesLoaded: boolean = false;
+  private _voicesLoaded: boolean = false;
 
   constructor() {
     this.synthesis = window.speechSynthesis;
@@ -23,13 +23,13 @@ class WebSpeechProvider implements ISpeechProvider {
     // Charger les voix immédiatement
     const voices = this.synthesis.getVoices();
     if (voices.length > 0) {
-      this.voicesLoaded = true;
+      this._voicesLoaded = true;
     }
 
     // Écouter le chargement asynchrone des voix (pour Chrome/Edge)
     if ('onvoiceschanged' in this.synthesis) {
       this.synthesis.onvoiceschanged = () => {
-        this.voicesLoaded = true;
+        this._voicesLoaded = true;
       };
     }
   }
@@ -70,7 +70,7 @@ class WebSpeechProvider implements ISpeechProvider {
 
         utterance.onend = () => {
           this.speaking = false;
-          this.currentUtterance = null;
+          this._currentUtterance = null;
           this.callbacks.onEnd?.();
           resolve();
         };
@@ -78,7 +78,7 @@ class WebSpeechProvider implements ISpeechProvider {
         utterance.onerror = (event) => {
           console.error('Speech synthesis error:', event);
           this.speaking = false;
-          this.currentUtterance = null;
+          this._currentUtterance = null;
           this.callbacks.onError?.(new Error(event.error));
           
           // Ne pas rejeter sur 'interrupted' ou 'canceled' car c'est normal
@@ -89,7 +89,7 @@ class WebSpeechProvider implements ISpeechProvider {
           }
         };
 
-        this.currentUtterance = utterance;
+        this._currentUtterance = utterance;
         
         // Workaround pour Chrome: reprendre la synthèse si elle est en pause
         if (this.synthesis.paused) {
@@ -111,7 +111,7 @@ class WebSpeechProvider implements ISpeechProvider {
   stop(): void {
     this.synthesis.cancel();
     this.speaking = false;
-    this.currentUtterance = null;
+    this._currentUtterance = null;
   }
 
   pause(): void {
@@ -132,6 +132,16 @@ class WebSpeechProvider implements ISpeechProvider {
 
   setCallbacks(callbacks: SpeechCallbacks): void {
     this.callbacks = { ...this.callbacks, ...callbacks };
+  }
+
+  // Getter to check if voices are loaded
+  areVoicesLoaded(): boolean {
+    return this._voicesLoaded;
+  }
+
+  // Getter to check current utterance
+  getCurrentUtterance(): SpeechSynthesisUtterance | null {
+    return this._currentUtterance;
   }
 
   async getVoices(): Promise<string[]> {

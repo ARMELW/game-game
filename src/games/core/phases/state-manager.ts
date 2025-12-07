@@ -1,4 +1,4 @@
-import { speechService, SpeechService } from "../services/speech-service";
+import { speechService } from "../services/speech-service";
 import type { AbstractBridge } from "../services/abstract-bridge";
 
 /**

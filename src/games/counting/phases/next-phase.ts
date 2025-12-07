@@ -1,5 +1,4 @@
 import { PhaseBase } from "../../core/phases/abstract-phase";
-import { StateManager } from "../../core/phases/state-manager";
 
 /**
  * Phase d'introduction du quiz
@@ -10,8 +9,6 @@ export class NextPhase extends PhaseBase {
         super('next', 'Phase Next');
     }
     execute(): void | Promise<void> {
-        const state = this.getState();
-
         // Exemple: écouter un événement de l'orchestrateur
         this.onEvent('PhaseChanged', (data) => {
             console.log('Phase changed:', data);
