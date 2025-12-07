@@ -100,6 +100,8 @@ L'application intègre un **assistant vocal intelligent** qui accompagne l'enfan
 **Documentation :**
 - [Guide d'implémentation de l'assistant vocal](docs/VOICE_ASSISTANT_IMPLEMENTATION.md)
 - [Résumé des fonctionnalités vocales](docs/VOICE_ASSISTANT_SUMMARY.md)
+- [Optimisations de performance vocale](docs/VOICE_PERFORMANCE_OPTIMIZATION.md)
+- [Guide de test des performances vocales](docs/TESTING_VOICE_PERFORMANCE.md)
 
 ### 🎯 Suivi de Complétion des Phases
 

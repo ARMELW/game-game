@@ -110,6 +110,18 @@ export abstract class PhaseBase<TState = any> {
     await this.stateManager.speak(message);
   }
 
+  /** 
+   * Helper pour faire parler le personnage sans bloquer (fire-and-forget)
+   * Utile pour les feedbacks immédiats (clics, validations) qui ne doivent pas
+   * ralentir l'interface utilisateur.
+   */
+  protected speakNonBlocking(message: string): void {
+    this.stateManager.speak(message).catch(err => {
+      // Log l'erreur mais ne pas la propager pour ne pas bloquer l'UI
+      console.warn('Non-blocking speech error (non-critical):', err.message || err);
+    });
+  }
+
 
   /** Helper pour mettre à jour le game state depuis une phase */
   protected updateGameState<T = any>(updates: Partial<T>) {

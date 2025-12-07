@@ -187,8 +187,8 @@ export class ColumnUnderstandingPhase extends PhaseBase {
       });
 
       // Écouter la validation (une seule fois)
-      const handleValidate = async () => {
-        await this.speak('Excellent !');
+      const handleValidate = () => {
+        this.speakNonBlocking('Excellent !');
         
         this.updateGameState({
           showValidateButton: false
@@ -270,8 +270,8 @@ export class ColumnUnderstandingPhase extends PhaseBase {
           showValidateButton: true
         });
 
-        const handleValidate = async () => {
-          await this.speak('Parfait !');
+        const handleValidate = () => {
+          this.speakNonBlocking('Parfait !');
           
           this.updateGameState({
             showValidateButton: false
