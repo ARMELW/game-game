@@ -21,7 +21,8 @@ export class UnityBridge extends AbstractBridge {
       console.log('[Unity Bridge] Raw message from Unity:', message);
       
       // Parser le message de Unity
-      // Unity envoie "SetValueX" où X est la nouvelle valeur
+      // Unity envoie soit "SetValueX" où X est la nouvelle valeur
+      // soit "set value X" (avec espace et minuscules)
       if (message.startsWith('SetValue')) {
         const value = message.substring(8); // Extraire la valeur après "SetValue"
         this.receiveMessage({
@@ -30,12 +31,23 @@ export class UnityBridge extends AbstractBridge {
           timestamp: Date.now()
         });
       } else {
-        // Autres messages
-        this.receiveMessage({
-          type: 'UnityRawMessage',
-          data: { message },
-          timestamp: Date.now()
-        });
+        // Essayer de matcher le pattern "set value X" avec regex
+        const match = message.match(/set value (\d+)/i);
+        if (match) {
+          const value = match[1];
+          this.receiveMessage({
+            type: 'SetValueUpdate',
+            data: { value },
+            timestamp: Date.now()
+          });
+        } else {
+          // Autres messages
+          this.receiveMessage({
+            type: 'UnityRawMessage',
+            data: { message },
+            timestamp: Date.now()
+          });
+        }
       }
     };
   }
