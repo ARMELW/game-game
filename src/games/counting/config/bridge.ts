@@ -30,8 +30,8 @@ export class UnityBridge extends AbstractBridge {
       // soit "set value X" (avec espace et minuscules)
       if (message.startsWith(UnityBridge.SET_VALUE_PREFIX)) {
         const value = message.substring(UnityBridge.SET_VALUE_PREFIX.length);
-        // Valider que la valeur extraite est numérique
-        if (value && /^\d+$/.test(value)) {
+        // Valider que la valeur extraite est non-vide et numérique
+        if (value.length > 0 && /^\d+$/.test(value)) {
           this.receiveMessage({
             type: 'SetValueUpdate',
             data: { value },
