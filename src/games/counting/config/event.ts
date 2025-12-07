@@ -15,6 +15,10 @@ declare class EventType extends AppEvent {
 }
 
 export type AppEventTypes = Omit<EventType, keyof Omit<Event, "on" | "off">>;
+
+// Singleton instance to ensure all parts of the app use the same event hub
+export const appEventHub = new AppEvent() as AppEventTypes;
+
 export const createAppEventHub = (): AppEventTypes => {
-  return new AppEvent();
+  return appEventHub;
 };
