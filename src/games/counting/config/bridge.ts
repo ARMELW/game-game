@@ -1,0 +1,57 @@
+import { MESSAGE_REGISTRY } from "./message";
+import { AbstractBridge } from "../../core/services/abstract-bridge";
+
+export class UnityBridge extends AbstractBridge {
+  private sendMessageCallback: ((gameObjectName: string, methodName: string, parameter?: string | number | boolean) => void) | null = null;
+  private checkReadyInterval: number | null = null;
+
+  constructor(debug: boolean = false) {
+    super(MESSAGE_REGISTRY, debug);
+    this.setupReceiver();
+    // We don't auto-check for window.unityInstance anymore
+  }
+
+  public setSendMessage(sendMessage: (gameObjectName: string, methodName: string, parameter?: string | number | boolean) => void) {
+    this.sendMessageCallback = sendMessage;
+    this.setReady(true);
+    //this.send('READY', '');
+  }
+
+  protected setupReceiver(): void {
+
+  }
+
+  protected sendRaw(message: { type: string; data: any }): void {
+
+    if (!this.sendMessageCallback) {
+      console.warn('[Unity Bridge] SendMessage callback not set, message queued');
+      return;
+    }
+
+    try {
+
+      this.sendMessageCallback('WebBridge', 'ReceiveStringMessageFromJs', message.type + message.data);
+
+    } catch (error) {
+      console.error('[Unity Bridge] Error sending to Unity:', error);
+    }
+  }
+
+
+  public isReady(): boolean {
+    return this.ready;
+  }
+
+  destroy(): void {
+    if (this.checkReadyInterval) {
+      clearInterval(this.checkReadyInterval);
+    }
+    this.clearHandlers();
+    this.clearQueue();
+    delete (window as any).receiveUnityMessage;
+  }
+}
+
+export const unityBridge = new UnityBridge(
+  true
+);

@@ -3,6 +3,7 @@ import { useStore, initialColumns } from "./store.ts";
 import { UnityGame } from "./components/UnityGame";
 import { parse, useUnity } from "./hooks/useUnity";
 import { UI_MESSAGES } from "./instructions.ts";
+import { HighlightUnitButtons } from "./unityBridge.ts";
 
 
 function formatNumber(num: number, length = 4) {
@@ -106,11 +107,14 @@ function MachineANombres() {
     setTimeout(() => {
       validationInProgressRef.current = false;
     }, 100);
-    
+
     // Handle simplified tutorial (didacticiel) phases
     if (phase === "didacticiel-step1-buttons") {
       // Step 1 complete - move to step 2
       if (didacticielStep1UpClicks >= 3 && didacticielStep1DownClicks >= 3) {
+        // Disable unit button highlighting
+        HighlightUnitButtons(false);
+
         // Transition to step 2
         const { setPhase, setColumns } = useStore.getState();
         const newCols = initialColumns.map(col => ({ ...col, value: 0, unlocked: true }));
@@ -125,7 +129,7 @@ function MachineANombres() {
       handleDidacticielStep3Validate();
       return;
     }
-    
+
     if (phase === "challenge-ten-to-twenty") {
       handleValidateTenToTwenty();
     } else if (phase === 'tutorial-challenge') {
@@ -588,15 +592,14 @@ function MachineANombres() {
               showValidateThousandsButton) &&
               attemptCount > 0 && (
                 <div
-                  className={`px-3 py-2 rounded-md text-center text-[13px] font-bold ${
-                    attemptCount === 1
-                      ? 'bg-blue-100 text-blue-900'
-                      : attemptCount === 2
-                        ? 'bg-yellow-100 text-yellow-900'
-                        : attemptCount === 3
-                          ? 'bg-orange-100 text-orange-900'
-                          : 'bg-red-100 text-red-900'
-                  }`}
+                  className={`px-3 py-2 rounded-md text-center text-[13px] font-bold ${attemptCount === 1
+                    ? 'bg-blue-100 text-blue-900'
+                    : attemptCount === 2
+                      ? 'bg-yellow-100 text-yellow-900'
+                      : attemptCount === 3
+                        ? 'bg-orange-100 text-orange-900'
+                        : 'bg-red-100 text-red-900'
+                    }`}
                 >
                   {attemptCount === 1 && "Essai 1/4"}
                   {attemptCount === 2 && "Essai 2/4 - Tu peux le faire !"}
@@ -623,7 +626,7 @@ function MachineANombres() {
                   >
                     Aide-moi à le faire !
                   </button>
-                
+
                 </div>
               </div>
             )}
@@ -677,9 +680,9 @@ function MachineANombres() {
             )}
           </div>
         </div>
-      {/* Navigation phase en bas de la sidebar */}
-      <div className="w-full px-4 pb-4 flex flex-col items-center">
-        
+        {/* Navigation phase en bas de la sidebar */}
+        <div className="w-full px-4 pb-4 flex flex-col items-center">
+
           <button
             onClick={goToNextPhase}
             disabled={getCurrentPhaseIndex() >= 62}
@@ -690,7 +693,7 @@ function MachineANombres() {
           >
             Suivante ➡️
           </button>
-      </div>
+        </div>
       </aside>
       {/* Main content */}
       <main className="flex-1 flex items-center justify-center h-full bg-slate-100">

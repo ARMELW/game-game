@@ -41,7 +41,7 @@ import {
     HELP_CHOICE_MESSAGES,
     GUIDED_MESSAGES,
 } from './instructions.ts';
-import { sendChallengeListToUnity, setValue, sendCorrectValue, sendWrongValue, sendNextGoal, LockUnitRoll, LockTenRoll, LockThousandRoll, LockHundredRoll } from './unityBridge.ts';
+import { sendChallengeListToUnity, setValue, sendCorrectValue, sendWrongValue, sendNextGoal, LockUnitRoll, LockTenRoll, LockThousandRoll, LockHundredRoll, HighlightUnitButtons } from './unityBridge.ts';
 import { textToSpeechService } from './voice/services/speech/text-to-speech.ts';
 
 export const initialColumns: Column[] = [
@@ -308,10 +308,10 @@ export const useStore = create<MachineState>((set, get) => ({
                 const voices = textToSpeechService.getVoices();
                 const { unityLoaded, unityLoadingProgression } = get();
                 checkCount++;
-                console.log('[setPhase] Check #' + checkCount + 
-                    ', Voices:', voices.length + 
-                    ', Unity loaded:', unityLoaded + 
-                    ', Unity progression:', Math.round(unityLoadingProgression * 100) + '%');
+                console.log('[setPhase] Check #' + checkCount +
+                    ', Voices:', voices.length +
+                ', Unity loaded:', unityLoaded +
+                ', Unity progression:', Math.round(unityLoadingProgression * 100) + '%');
 
                 // Check if both TTS voices and Unity are ready
                 const ttsReady = voices.length > 0;
@@ -1115,9 +1115,9 @@ export const useStore = create<MachineState>((set, get) => ({
         set({
             showUnlockButton: phase === 'normal' && !allColumnsUnlocked,
             showStartLearningButton: phase === 'done' || phase === 'celebration-before-thousands' || phase === 'celebration-thousands-complete' || phase === 'intro-learn-tens' || phase === 'intro-learn-hundreds' || phase === 'intro-learn-thousands',
-            showValidateLearningButton: phase === 'tutorial-challenge' || phase.startsWith('challenge-unit-') || phase === 'challenge-ten-to-twenty' || 
-                (phase === 'didacticiel-step1-buttons' && isStep1Complete) || 
-                phase === 'didacticiel-step2-columns' || 
+            showValidateLearningButton: phase === 'tutorial-challenge' || phase.startsWith('challenge-unit-') || phase === 'challenge-ten-to-twenty' ||
+                (phase === 'didacticiel-step1-buttons' && isStep1Complete) ||
+                phase === 'didacticiel-step2-columns' ||
                 phase === 'didacticiel-step3-free-practice',
             showValidateTensButton: phase.startsWith('challenge-tens-'),
             showValidateHundredsButton: phase.startsWith('challenge-hundreds-') || phase === 'challenge-hundred-to-two-hundred' || phase === 'challenge-two-hundred-to-three-hundred',
@@ -2885,7 +2885,7 @@ export const useStore = create<MachineState>((set, get) => ({
                 if (unitTargetIndex + 1 >= challenge.targets.length) {
                     if (challengeIndex === UNIT_CHALLENGES.length - 1) {
                         // All unit challenges completed - commented out transition
-                        
+
                         // Reset units column to 0 so child can start from the beginning
                         const resetCols = get().columns.map((col, i) =>
                             i === 0 ? { ...col, value: 0 } : col
@@ -2895,8 +2895,8 @@ export const useStore = create<MachineState>((set, get) => ({
                             phase: 'learn-carry'
                         });
                         get().updateButtonVisibility();
-                       // sequenceFeedback("Prêt pour la magie ?  Tu vas voir l'échange 10 pour 1 !", "D'abord, compte jusqu'à 9 en cliquant sur VERT. Ensuite, la magie va opérer ! ");
-                        
+                        // sequenceFeedback("Prêt pour la magie ?  Tu vas voir l'échange 10 pour 1 !", "D'abord, compte jusqu'à 9 en cliquant sur VERT. Ensuite, la magie va opérer ! ");
+
                     } else {
                         // Moving to next challenge phase - do NOT call sendNextGoal() 
                         // because setPhase will send a new challenge list to Unity
@@ -4061,7 +4061,7 @@ export const useStore = create<MachineState>((set, get) => ({
             case 'normal':
                 newInstruction = PHASE_INSTRUCTIONS['normal'];
                 break;
-            
+
             // Simplified tutorial (didacticiel) phases
             case 'didacticiel-step1-buttons': {
                 const { didacticielStep1UpClicks, didacticielStep1DownClicks } = get();
@@ -4079,7 +4079,7 @@ export const useStore = create<MachineState>((set, get) => ({
                 const { didacticielStep2TargetIndex, didacticielStep2SuccessCount } = get();
                 const step2Instructions = PHASE_INSTRUCTIONS['didacticiel-step2-columns'];
                 const challenge = DIDACTICIEL_STEP2_CHALLENGES;
-                
+
                 if (didacticielStep2SuccessCount >= challenge.targets.length) {
                     newInstruction = step2Instructions.final;
                 } else {
@@ -4094,7 +4094,7 @@ export const useStore = create<MachineState>((set, get) => ({
                 newInstruction = step3Instructions.challenge(didacticielStep3Target, didacticielStep3SuccessCount);
                 break;
             }
-            
+
             default:
                 newInstruction = PHASE_INSTRUCTIONS['default'];
         }
@@ -4180,6 +4180,21 @@ export const useStore = create<MachineState>((set, get) => ({
                 console.log('[updateInstruction] intro-second-column complete, transitioning to next phase');
                 get().goToNextPhase();
             });
+        } else if (phase === 'didacticiel-step1-buttons') {
+            // For didacticiel step 1, highlight the unit buttons after speaking the initial instruction
+            const { didacticielStep1UpClicks, didacticielStep1DownClicks } = get();
+
+            // Only speak and highlight on initial instruction (when no clicks yet)
+            if (didacticielStep1UpClicks === 0 && didacticielStep1DownClicks === 0) {
+                get().speakAndThen(newInstruction, () => {
+                    // After TTS finishes, highlight the unit buttons
+                    HighlightUnitButtons(true);
+                    console.log('[updateInstruction] didacticiel-step1-buttons: highlighted unit buttons after TTS');
+                });
+            } else {
+                // For progress updates, just speak without highlighting again
+                get().speakAndThen(newInstruction);
+            }
         } else {
             // For all other phases, just speak without automatic transition
             get().speakAndThen(newInstruction);
@@ -4653,7 +4668,7 @@ Tu veux :
 
     startSimplifiedTutorial: () => {
         console.log('[startSimplifiedTutorial] Starting simplified tutorial');
-        
+
         // Reset all tutorial state
         const newCols = initialColumns.map(col => ({ ...col, value: 0, unlocked: true }));
         // Only unlock units column initially for step 1
@@ -4661,7 +4676,7 @@ Tu veux :
         newCols[1].unlocked = false;
         newCols[2].unlocked = false;
         newCols[3].unlocked = false;
-        
+
         set({
             columns: newCols,
             phase: 'didacticiel-step1-buttons',
@@ -4675,49 +4690,50 @@ Tu veux :
             showDidacticielQuitButton: false,
             feedback: "",
         });
-        
+
         setValue(0);
         get().updateInstruction();
     },
 
     handleDidacticielStep1ButtonClick: (direction) => {
-        const { 
-            didacticielStep1UpClicks, 
-            didacticielStep1DownClicks, 
+        const {
+            didacticielStep1UpClicks,
+            didacticielStep1DownClicks,
             columns,
             sequenceFeedback,
             speakAndThen
         } = get();
-        
+
         const newCols = [...columns];
-        
+
         if (direction === 'up') {
             const newUpClicks = didacticielStep1UpClicks + 1;
             set({ didacticielStep1UpClicks: newUpClicks });
-            
+
             // Increment the unit column value
             if (newCols[0].value < 9) {
                 newCols[0].value++;
                 set({ columns: newCols });
                 setValue(newCols[0].value);
             }
-            
+
             if (newUpClicks === DIDACTICIEL_REQUIRED_CLICKS && didacticielStep1DownClicks < DIDACTICIEL_REQUIRED_CLICKS) {
                 speakAndThen(`Parfait ! Tu as cliqué ${DIDACTICIEL_REQUIRED_CLICKS} fois sur Haut ! Maintenant clique ${DIDACTICIEL_REQUIRED_CLICKS} fois sur Bas !`);
             }
         } else if (direction === 'down') {
             const newDownClicks = didacticielStep1DownClicks + 1;
             set({ didacticielStep1DownClicks: newDownClicks });
-            
+
             // Decrement the unit column value
             if (newCols[0].value > 0) {
                 newCols[0].value--;
                 set({ columns: newCols });
                 setValue(newCols[0].value);
             }
-            
+
             if (newDownClicks === DIDACTICIEL_REQUIRED_CLICKS && didacticielStep1UpClicks >= DIDACTICIEL_REQUIRED_CLICKS) {
-                // Step 1 complete - show validate message
+                // Step 1 complete - disable button highlighting and show validate message
+                HighlightUnitButtons(false);
                 sequenceFeedback(
                     "Bravo ! Tu as bien compris les boutons Haut et Bas !",
                     "Clique sur VALIDER pour passer à l'étape suivante.",
@@ -4727,7 +4743,7 @@ Tu veux :
                 );
             }
         }
-        
+
         // Update progress feedback
         const currentUp = get().didacticielStep1UpClicks;
         const currentDown = get().didacticielStep1DownClicks;
@@ -4737,27 +4753,27 @@ Tu veux :
     },
 
     handleDidacticielStep2Validate: () => {
-        const { 
-            columns, 
-            didacticielStep2TargetIndex, 
+        const {
+            columns,
+            didacticielStep2TargetIndex,
             didacticielStep2SuccessCount,
             sequenceFeedback,
             speakAndThen
         } = get();
-        
+
         // Get current target
         const challenge = DIDACTICIEL_STEP2_CHALLENGES;
         const targetNumber = challenge.targets[didacticielStep2TargetIndex];
-        
+
         // Calculate current value from columns
         const currentValue = columns.reduce((acc, col, idx) => acc + col.value * Math.pow(10, idx), 0);
-        
+
         if (currentValue === targetNumber) {
             // Success!
             sendCorrectValue();
             const newSuccessCount = didacticielStep2SuccessCount + 1;
             set({ didacticielStep2SuccessCount: newSuccessCount });
-            
+
             if (didacticielStep2TargetIndex + 1 >= challenge.targets.length) {
                 // Step 2 complete - move to step 3
                 sequenceFeedback(
@@ -4805,32 +4821,32 @@ Tu veux :
     },
 
     handleDidacticielStep3Validate: () => {
-        const { 
-            columns, 
-            didacticielStep3Target, 
+        const {
+            columns,
+            didacticielStep3Target,
             didacticielStep3SuccessCount,
             speakAndThen
         } = get();
-        
+
         // Calculate current value from columns
         const currentValue = columns.reduce((acc, col, idx) => acc + col.value * Math.pow(10, idx), 0);
-        
+
         if (currentValue === didacticielStep3Target) {
             // Success!
             sendCorrectValue();
             const newSuccessCount = didacticielStep3SuccessCount + 1;
             set({ didacticielStep3SuccessCount: newSuccessCount });
-            
+
             // Get next random target
             const nextTarget = getRandomDidacticielNumber();
             const newCols = initialColumns.map(col => ({ ...col, value: 0, unlocked: true }));
-            
+
             set({
                 columns: newCols,
                 didacticielStep3Target: nextTarget,
             });
             setValue(0);
-            
+
             speakAndThen(`Bravo ! ${newSuccessCount} exercice${newSuccessCount > 1 ? 's' : ''} réussi${newSuccessCount > 1 ? 's' : ''} ! Voici un nouveau nombre : ${nextTarget} !`);
             get().updateInstruction();
         } else {
@@ -4851,7 +4867,7 @@ Tu veux :
 
     quitDidacticiel: () => {
         const { didacticielStep3SuccessCount, sequenceFeedback } = get();
-        
+
         sequenceFeedback(
             `Merci d'avoir utilisé le didacticiel ! Tu as réussi ${didacticielStep3SuccessCount} exercice${didacticielStep3SuccessCount > 1 ? 's' : ''} !`,
             "Tu peux maintenant utiliser la machine librement. À bientôt !",

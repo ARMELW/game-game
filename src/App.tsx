@@ -1,12 +1,9 @@
-
-import MachineANombres from "./MachineANombres";
+import { UnityGame } from "./components/UnityGame";
 
 function App() {
 
   return (
-    <>
-       <MachineANombres />
-    </>
+    <UnityGame />
   );
 }
 
