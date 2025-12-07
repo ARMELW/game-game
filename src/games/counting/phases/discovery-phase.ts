@@ -61,7 +61,7 @@ export class DiscoveryPhase extends PhaseBase {
     if (currentValue > this.maxUnitsValue) {
       console.log('⚠️ Dépassement de la limite, retour à', this.maxUnitsValue);
       this.sendToUnity('SetValue', `000${this.maxUnitsValue}`);
-      await this.speak('Attention ! Pour cet exercice, nous ne dépassons pas 3. Descendons maintenant avec le bouton rouge.');
+      this.speakNonBlocking('Attention ! Pour cet exercice, nous ne dépassons pas 3. Descendons maintenant avec le bouton rouge.');
       this.updateGameState({ lastValue: this.maxUnitsValue });
       return;
     }
@@ -70,25 +70,25 @@ export class DiscoveryPhase extends PhaseBase {
       this.upClicks++;
       console.log(`↑ Click detected. Total: ${this.upClicks}/${this.requiredClicks}`);
       
-      // Encouragement vocal
+      // Encouragement vocal (non-bloquant pour éviter les ralentissements)
       if (this.upClicks === 1) {
-        await this.speak('Excellent ! Continue comme ça !');
+        this.speakNonBlocking('Excellent ! Continue comme ça !');
       } else if (this.upClicks === 2) {
-        await this.speak('Bravo ! Encore une fois !');
+        this.speakNonBlocking('Bravo ! Encore une fois !');
       } else if (this.upClicks === 3) {
-        await this.speak('Parfait ! Maintenant, essayons le bouton rouge pour descendre.');
+        this.speakNonBlocking('Parfait ! Maintenant, essayons le bouton rouge pour descendre.');
       }
     } else if (currentValue < lastValue) {
       this.downClicks++;
       console.log(`↓ Click detected. Total: ${this.downClicks}/${this.requiredClicks}`);
       
-      // Encouragement vocal
+      // Encouragement vocal (non-bloquant pour éviter les ralentissements)
       if (this.downClicks === 1) {
-        await this.speak('Très bien ! Tu as compris !');
+        this.speakNonBlocking('Très bien ! Tu as compris !');
       } else if (this.downClicks === 2) {
-        await this.speak('Super ! Encore une fois !');
+        this.speakNonBlocking('Super ! Encore une fois !');
       } else if (this.downClicks === 3) {
-        await this.speak('Magnifique ! Tu maîtrises les boutons maintenant !');
+        this.speakNonBlocking('Magnifique ! Tu maîtrises les boutons maintenant !');
       }
     }
 

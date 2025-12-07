@@ -78,7 +78,7 @@ export class FreePracticePhase extends PhaseBase {
     });
   }
 
-  private async validateExercise(): Promise<void> {
+  private validateExercise(): void {
     console.log(`Validation: ${this.currentValue} vs ${this.currentTarget}`);
 
     if (this.currentValue === this.currentTarget) {
@@ -86,17 +86,17 @@ export class FreePracticePhase extends PhaseBase {
       this.successCount++;
       console.log(`✓ Bravo! Succès: ${this.successCount}`);
 
-      // Messages vocaux variés selon le nombre de succès
+      // Messages vocaux variés selon le nombre de succès (non-bloquant)
       if (this.successCount === 1) {
-        await this.speak('Bravo ! Tu as réussi ton premier exercice !');
+        this.speakNonBlocking('Bravo ! Tu as réussi ton premier exercice !');
       } else if (this.successCount === 3) {
-        await this.speak('Excellent ! Trois exercices de suite ! Tu es en pleine forme !');
+        this.speakNonBlocking('Excellent ! Trois exercices de suite ! Tu es en pleine forme !');
       } else if (this.successCount === 5) {
-        await this.speak('Incroyable ! Cinq exercices ! Tu es vraiment doué !');
+        this.speakNonBlocking('Incroyable ! Cinq exercices ! Tu es vraiment doué !');
       } else if (this.successCount % 5 === 0) {
-        await this.speak(`Fantastique ! ${this.successCount} exercices réussis ! Continue comme ça !`);
+        this.speakNonBlocking(`Fantastique ! ${this.successCount} exercices réussis ! Continue comme ça !`);
       } else {
-        await this.speak('Parfait !');
+        this.speakNonBlocking('Parfait !');
       }
 
       this.updateGameState({
@@ -114,7 +114,7 @@ export class FreePracticePhase extends PhaseBase {
       // Incorrect
       console.log('✗ Pas correct, réessayez');
 
-      await this.speak('Hmmm, ce n\'est pas tout à fait ça. Regarde bien le nombre demandé et réessaie !');
+      this.speakNonBlocking('Hmmm, ce n\'est pas tout à fait ça. Regarde bien le nombre demandé et réessaie !');
 
       this.updateGameState({
         message: '✗ Pas tout à fait... Réessayez !',

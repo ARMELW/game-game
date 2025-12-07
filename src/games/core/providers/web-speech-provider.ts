@@ -39,72 +39,62 @@ class WebSpeechProvider implements ISpeechProvider {
       // Nettoyer toute synthèse en cours
       this.synthesis.cancel();
       
-      // Petit délai pour s'assurer que cancel() a pris effet
-      setTimeout(() => {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = this.config.lang;
-        utterance.rate = this.config.rate;
-        utterance.pitch = this.config.pitch;
-        utterance.volume = this.config.volume;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = this.config.lang;
+      utterance.rate = this.config.rate;
+      utterance.pitch = this.config.pitch;
+      utterance.volume = this.config.volume;
 
-        // Sélectionner la voix si spécifiée
-        if (this.config.voice) {
-          const voices = this.synthesis.getVoices();
-          const voice = voices.find(v => v.name === this.config.voice);
-          if (voice) {
-            utterance.voice = voice;
-          }
-        } else {
-          // Sélectionner automatiquement une voix française si disponible
-          const voices = this.synthesis.getVoices();
-          const frenchVoice = voices.find(v => v.lang.startsWith('fr'));
-          if (frenchVoice) {
-            utterance.voice = frenchVoice;
-          }
+      // Sélectionner la voix si spécifiée
+      if (this.config.voice) {
+        const voices = this.synthesis.getVoices();
+        const voice = voices.find(v => v.name === this.config.voice);
+        if (voice) {
+          utterance.voice = voice;
         }
+      } else {
+        // Sélectionner automatiquement une voix française si disponible
+        const voices = this.synthesis.getVoices();
+        const frenchVoice = voices.find(v => v.lang.startsWith('fr'));
+        if (frenchVoice) {
+          utterance.voice = frenchVoice;
+        }
+      }
 
-        utterance.onstart = () => {
-          this.speaking = true;
-          this.callbacks.onStart?.();
-        };
+      utterance.onstart = () => {
+        this.speaking = true;
+        this.callbacks.onStart?.();
+      };
 
-        utterance.onend = () => {
-          this.speaking = false;
-          this._currentUtterance = null;
-          this.callbacks.onEnd?.();
+      utterance.onend = () => {
+        this.speaking = false;
+        this._currentUtterance = null;
+        this.callbacks.onEnd?.();
+        resolve();
+      };
+
+      utterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event);
+        this.speaking = false;
+        this._currentUtterance = null;
+        this.callbacks.onError?.(new Error(event.error));
+        
+        // Ne pas rejeter sur 'interrupted' ou 'canceled' car c'est normal
+        if (event.error === 'interrupted' || event.error === 'canceled') {
           resolve();
-        };
-
-        utterance.onerror = (event) => {
-          console.error('Speech synthesis error:', event);
-          this.speaking = false;
-          this._currentUtterance = null;
-          this.callbacks.onError?.(new Error(event.error));
-          
-          // Ne pas rejeter sur 'interrupted' ou 'canceled' car c'est normal
-          if (event.error === 'interrupted' || event.error === 'canceled') {
-            resolve();
-          } else {
-            reject(new Error(event.error));
-          }
-        };
-
-        this._currentUtterance = utterance;
-        
-        // Workaround pour Chrome: reprendre la synthèse si elle est en pause
-        if (this.synthesis.paused) {
-          this.synthesis.resume();
+        } else {
+          reject(new Error(event.error));
         }
-        
-        this.synthesis.speak(utterance);
+      };
 
-        // Workaround pour certains navigateurs qui ne démarrent pas immédiatement
-        setTimeout(() => {
-          if (!this.speaking && this.synthesis.pending) {
-            this.synthesis.resume();
-          }
-        }, 100);
-      }, 50);
+      this._currentUtterance = utterance;
+      
+      // Workaround pour Chrome: reprendre la synthèse si elle est en pause
+      if (this.synthesis.paused) {
+        this.synthesis.resume();
+      }
+      
+      this.synthesis.speak(utterance);
     });
   }
 
