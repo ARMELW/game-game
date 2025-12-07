@@ -10,6 +10,7 @@ export class ColumnUnderstandingPhase extends PhaseBase {
   private currentDigitIndex = 0; // 0=unité, 1=dizaine, 2=centaine, 3=millième
   private readonly digitNames = ['Unité', 'Dizaine', 'Centaine', 'Millième'];
   private readonly lockCommands = ['LockUnit', 'LockTen', 'LockHundred', 'LockThousand'];
+  private currentValue = '0000';
 
   constructor() {
     super('column-understanding', 'Compréhension des colonnes');
@@ -33,6 +34,13 @@ export class ColumnUnderstandingPhase extends PhaseBase {
 
     // Débloquer tous temporairement pour montrer
     this.unlockAll();
+
+    // Écouter les changements de valeur
+    this.onUnityEvent('SetValueUpdate', (data: { value?: string }) => {
+      const valueStr = data.value || '0';
+      this.currentValue = valueStr.padStart(4, '0');
+      this.checkDigitProgress();
+    });
 
     // Attendre 3 secondes puis commencer le premier exercice
     setTimeout(() => {
@@ -69,6 +77,7 @@ export class ColumnUnderstandingPhase extends PhaseBase {
 
     // Réinitialiser
     this.sendToUnity('SetValue', '0000');
+    this.currentValue = '0000';
 
     // Bloquer tout
     this.lockAll();
@@ -95,28 +104,21 @@ export class ColumnUnderstandingPhase extends PhaseBase {
       currentDigit: digitName,
       showValidateButton: false
     });
-
-    // Écouter les changements de valeur
-    this.onUnityEvent('SetValueUpdate', (data: any) => {
-      this.handleValueUpdate(data, targetNumber);
-    });
   }
 
-  private handleValueUpdate(data: any, targetNumber: string): void {
-    const valueStr = data.value || data.toString();
-    const currentValue = valueStr.padStart(4, '0');
-    console.log(`Valeur actuelle: ${currentValue}, cible: ${targetNumber}`);
-
+  private checkDigitProgress(): void {
+    const targetNumber = this.numbers[this.currentNumberIndex];
+    
     // Vérifier si la colonne actuelle est correcte
     const digitPosition = 3 - this.currentDigitIndex;
-    const currentDigit = currentValue[digitPosition];
+    const currentDigit = this.currentValue[digitPosition];
     const targetDigit = targetNumber[digitPosition];
 
     // Vérifier aussi que les colonnes précédentes sont toujours correctes
     let previousCorrect = true;
     for (let i = 0; i < this.currentDigitIndex; i++) {
       const prevPos = 3 - i;
-      if (currentValue[prevPos] !== targetNumber[prevPos]) {
+      if (this.currentValue[prevPos] !== targetNumber[prevPos]) {
         previousCorrect = false;
         break;
       }
@@ -148,8 +150,8 @@ export class ColumnUnderstandingPhase extends PhaseBase {
       showValidateButton: true
     });
 
-    // Attendre la validation
-    this.onEvent('validateClick', () => {
+    // Attendre la validation - écouter une seule fois
+    const handleValidate = () => {
       this.updateGameState({
         message: '✓ Bravo !',
         showValidateButton: false
@@ -172,6 +174,9 @@ export class ColumnUnderstandingPhase extends PhaseBase {
           }, 2000);
         }
       }, 2000);
-    });
+    };
+
+    // Écouter le clic sur Valider
+    this.onEvent('validateClick', handleValidate);
   }
 }

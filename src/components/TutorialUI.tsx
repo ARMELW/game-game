@@ -16,7 +16,7 @@ export function TutorialUI() {
 
   useEffect(() => {
     // Écouter les changements de state
-    const unsubscribe = quizStateManager.on('gameStateChanged', (data: any) => {
+    const unsubscribe = quizStateManager.on('gameStateChanged', (data: { updates: Partial<GameState> }) => {
       console.log('Game state updated:', data.updates);
       setGameState(prev => ({ ...prev, ...data.updates }));
     });

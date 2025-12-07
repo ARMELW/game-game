@@ -36,18 +36,18 @@ export class DiscoveryPhase extends PhaseBase {
     });
 
     // Écouter les messages de Unity (SetValue)
-    this.onUnityEvent('SetValueUpdate', (data: any) => {
+    this.onUnityEvent('SetValueUpdate', (data: { value?: string }) => {
       this.handleUnityClick(data);
     });
   }
 
-  private handleUnityClick(data: any): void {
+  private handleUnityClick(data: { value?: string }): void {
     console.log('Unity click received:', data);
 
     // Extraire la valeur du payload
-    const valueStr = data.value || data.toString();
+    const valueStr = data.value || '0';
     const currentValue = parseInt(valueStr, 10);
-    const lastValue = this.getGameState()?.lastValue || 0;
+    const lastValue = (this.getGameState() as { lastValue?: number })?.lastValue || 0;
 
     if (currentValue > lastValue) {
       this.upClicks++;

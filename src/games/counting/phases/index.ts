@@ -5,11 +5,22 @@ import { DiscoveryPhase } from "./discovery-phase";
 import { ColumnUnderstandingPhase } from "./column-understanding-phase";
 import { FreePracticePhase } from "./free-practice-phase";
 
-export class QuizGameOrchestrator extends GameOrchestrator {
+interface TutorialGameState {
+    message: string;
+    progress: string;
+    showValidateButton: boolean;
+    showQuitButton: boolean;
+    successCount: number;
+    targetNumber: string;
+    currentDigit: string;
+    lastValue: number;
+}
+
+export class QuizGameOrchestrator extends GameOrchestrator<TutorialGameState> {
     constructor(state: StateManager) {
         super(state);
     }
-    protected getDefaultGameState(): any {
+    protected getDefaultGameState(): TutorialGameState {
         return {
             message: '',
             progress: '',
@@ -34,7 +45,7 @@ export class QuizGameOrchestrator extends GameOrchestrator {
         console.log('État final du jeu:', this.getGameState());
     }
 
-    protected onError(error: any): void {
+    protected onError(error: Error): void {
         console.error('❌ Erreur dans le tutoriel:', error);
     }
 }

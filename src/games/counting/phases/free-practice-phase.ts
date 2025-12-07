@@ -7,7 +7,7 @@ import { PhaseBase } from "../../core/phases/abstract-phase";
 export class FreePracticePhase extends PhaseBase {
   private currentTarget = '';
   private successCount = 0;
-  private isWaitingForValidation = false;
+  private currentValue = '0000';
 
   constructor() {
     super('free-practice', 'Exercices libres');
@@ -30,9 +30,21 @@ export class FreePracticePhase extends PhaseBase {
       showQuitButton: true
     });
 
+    // Écouter les changements de valeur pour tracker la valeur actuelle
+    this.onUnityEvent('SetValueUpdate', (data: { value?: string }) => {
+      const valueStr = data.value || '0';
+      this.currentValue = valueStr.padStart(4, '0');
+      console.log('Current value updated:', this.currentValue);
+    });
+
     // Écouter le clic sur Quitter
     this.onEvent('quitClick', () => {
       this.exitTutorial();
+    });
+
+    // Écouter le clic sur Valider
+    this.onEvent('validateClick', () => {
+      this.validateExercise();
     });
 
     // Commencer le premier exercice
@@ -51,6 +63,7 @@ export class FreePracticePhase extends PhaseBase {
 
     // Réinitialiser la valeur
     this.sendToUnity('SetValue', '0000');
+    this.currentValue = '0000';
 
     // Afficher l'objectif
     this.updateGameState({
@@ -59,60 +72,37 @@ export class FreePracticePhase extends PhaseBase {
       showValidateButton: true,
       showQuitButton: true
     });
-
-    this.isWaitingForValidation = true;
-
-    // Écouter le clic sur Valider
-    this.onEvent('validateClick', () => {
-      if (this.isWaitingForValidation) {
-        this.validateExercise();
-      }
-    });
   }
 
   private validateExercise(): void {
-    this.isWaitingForValidation = false;
+    console.log(`Validation: ${this.currentValue} vs ${this.currentTarget}`);
 
-    // Écouter la valeur actuelle de Unity
-    this.onUnityEvent('SetValueUpdate', (data: any) => {
-      const valueStr = data.value || data.toString();
-      const currentValue = valueStr.padStart(4, '0');
-      console.log(`Validation: ${currentValue} vs ${this.currentTarget}`);
+    if (this.currentValue === this.currentTarget) {
+      // Correct !
+      this.successCount++;
+      console.log(`✓ Bravo! Succès: ${this.successCount}`);
 
-      if (currentValue === this.currentTarget) {
-        // Correct !
-        this.successCount++;
-        console.log(`✓ Bravo! Succès: ${this.successCount}`);
+      this.updateGameState({
+        message: '✓ Bravo !',
+        successCount: this.successCount,
+        showValidateButton: false,
+        showQuitButton: true
+      });
 
-        this.updateGameState({
-          message: '✓ Bravo !',
-          successCount: this.successCount,
-          showValidateButton: false,
-          showQuitButton: true
-        });
+      // Attendre 2 secondes puis nouveau nombre
+      setTimeout(() => {
+        this.startNewExercise();
+      }, 2000);
+    } else {
+      // Incorrect
+      console.log('✗ Pas correct, réessayez');
 
-        // Attendre 2 secondes puis nouveau nombre
-        setTimeout(() => {
-          this.startNewExercise();
-        }, 2000);
-      } else {
-        // Incorrect
-        console.log('✗ Pas correct, réessayez');
-
-        this.updateGameState({
-          message: '✗ Pas tout à fait... Réessayez !',
-          showValidateButton: true,
-          showQuitButton: true
-        });
-
-        // Permettre de réessayer
-        this.isWaitingForValidation = true;
-      }
-    });
-
-    // Demander la valeur actuelle à Unity
-    // Note: Dans une vraie implémentation, Unity devrait envoyer la valeur automatiquement
-    // ou nous devrions avoir un moyen de la récupérer
+      this.updateGameState({
+        message: '✗ Pas tout à fait... Réessayez !',
+        showValidateButton: true,
+        showQuitButton: true
+      });
+    }
   }
 
   private exitTutorial(): void {
