@@ -1,8 +1,13 @@
 import { MESSAGE_REGISTRY } from "./message";
 import { AbstractBridge } from "../../core/services/abstract-bridge";
+
 export class UnityBridge extends AbstractBridge {
   private sendMessageCallback: ((gameObjectName: string, methodName: string, parameter?: string | number) => void) | null = null;
   private checkReadyInterval: number | null = null;
+  
+  // Constants for Unity message parsing
+  private static readonly SET_VALUE_PREFIX = 'SetValue';
+  private static readonly SET_VALUE_PATTERN = /set value (\d+)/i;
 
   constructor(debug: boolean = false) {
     super(MESSAGE_REGISTRY, debug);
@@ -21,21 +26,38 @@ export class UnityBridge extends AbstractBridge {
       console.log('[Unity Bridge] Raw message from Unity:', message);
       
       // Parser le message de Unity
-      // Unity envoie "SetValueX" où X est la nouvelle valeur
-      if (message.startsWith('SetValue')) {
-        const value = message.substring(8); // Extraire la valeur après "SetValue"
-        this.receiveMessage({
-          type: 'SetValueUpdate',
-          data: { value },
-          timestamp: Date.now()
-        });
+      // Unity envoie soit "SetValueX" où X est la nouvelle valeur
+      // soit "set value X" (avec espace et minuscules)
+      if (message.startsWith(UnityBridge.SET_VALUE_PREFIX)) {
+        const value = message.substring(UnityBridge.SET_VALUE_PREFIX.length);
+        // Valider que la valeur extraite est non-vide et numérique
+        if (value.length > 0 && /^\d+$/.test(value)) {
+          this.receiveMessage({
+            type: 'SetValueUpdate',
+            data: { value },
+            timestamp: Date.now()
+          });
+        } else {
+          console.warn('[Unity Bridge] Invalid SetValue format:', message);
+        }
       } else {
-        // Autres messages
-        this.receiveMessage({
-          type: 'UnityRawMessage',
-          data: { message },
-          timestamp: Date.now()
-        });
+        // Essayer de matcher le pattern "set value X" avec regex
+        const match = message.match(UnityBridge.SET_VALUE_PATTERN);
+        if (match) {
+          const value = match[1];
+          this.receiveMessage({
+            type: 'SetValueUpdate',
+            data: { value },
+            timestamp: Date.now()
+          });
+        } else {
+          // Autres messages
+          this.receiveMessage({
+            type: 'UnityRawMessage',
+            data: { message },
+            timestamp: Date.now()
+          });
+        }
       }
     };
   }
