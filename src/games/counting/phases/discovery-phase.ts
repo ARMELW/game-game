@@ -9,13 +9,14 @@ export class DiscoveryPhase extends PhaseBase {
   private upClicks = 0;
   private downClicks = 0;
   private readonly requiredClicks = 3;
+  private readonly maxUnitsValue = 3;
   private validationShown = false;
 
   constructor() {
     super('discovery', 'Découverte des boutons');
   }
 
-  execute(): void {
+  async execute(): Promise<void> {
     console.log('🎮 Phase 1: Découverte des boutons');
 
     // Initialisation - Réinitialiser la machine
@@ -28,6 +29,11 @@ export class DiscoveryPhase extends PhaseBase {
 
     // Débloquer unités
     this.sendToUnity('LockUnit', 0);
+
+    // Message vocal d'introduction
+    await this.speak('Bonjour ! Je suis ton assistant vocal. Bienvenue dans l\'aventure des nombres ! Aujourd\'hui, nous allons apprendre ensemble comment fonctionne cette machine magique.');
+    await this.speak('Pour commencer, regarde les deux boutons : le bouton vert avec la flèche vers le haut pour augmenter, et le bouton rouge avec la flèche vers le bas pour diminuer.');
+    await this.speak('Clique 3 fois sur le bouton vert, puis 3 fois sur le bouton rouge. Allons-y !');
 
     // Mettre à jour l'état UI
     this.updateGameState({
@@ -42,7 +48,7 @@ export class DiscoveryPhase extends PhaseBase {
     });
   }
 
-  private handleUnityClick(data: { value?: string }): void {
+  private async handleUnityClick(data: { value?: string }): Promise<void> {
     console.log('Unity click received:', data);
 
     // Extraire la valeur du payload
@@ -51,12 +57,39 @@ export class DiscoveryPhase extends PhaseBase {
     const gameState = this.getGameState() as TutorialGameState;
     const lastValue = gameState.lastValue || 0;
 
+    // Vérifier les limites (ne pas dépasser maxUnitsValue)
+    if (currentValue > this.maxUnitsValue) {
+      console.log('⚠️ Dépassement de la limite, retour à', this.maxUnitsValue);
+      this.sendToUnity('SetValue', `000${this.maxUnitsValue}`);
+      await this.speak('Attention ! Pour cet exercice, nous ne dépassons pas 3. Descendons maintenant avec le bouton rouge.');
+      this.updateGameState({ lastValue: this.maxUnitsValue });
+      return;
+    }
+
     if (currentValue > lastValue) {
       this.upClicks++;
       console.log(`↑ Click detected. Total: ${this.upClicks}/${this.requiredClicks}`);
+      
+      // Encouragement vocal
+      if (this.upClicks === 1) {
+        await this.speak('Excellent ! Continue comme ça !');
+      } else if (this.upClicks === 2) {
+        await this.speak('Bravo ! Encore une fois !');
+      } else if (this.upClicks === 3) {
+        await this.speak('Parfait ! Maintenant, essayons le bouton rouge pour descendre.');
+      }
     } else if (currentValue < lastValue) {
       this.downClicks++;
       console.log(`↓ Click detected. Total: ${this.downClicks}/${this.requiredClicks}`);
+      
+      // Encouragement vocal
+      if (this.downClicks === 1) {
+        await this.speak('Très bien ! Tu as compris !');
+      } else if (this.downClicks === 2) {
+        await this.speak('Super ! Encore une fois !');
+      } else if (this.downClicks === 3) {
+        await this.speak('Magnifique ! Tu maîtrises les boutons maintenant !');
+      }
     }
 
     // Sauvegarder la dernière valeur
@@ -75,9 +108,12 @@ export class DiscoveryPhase extends PhaseBase {
     return `↑ ${this.upClicks}/${this.requiredClicks}  ↓ ${this.downClicks}/${this.requiredClicks}`;
   }
 
-  private checkCompletion(): void {
+  private async checkCompletion(): Promise<void> {
     if (this.upClicks >= this.requiredClicks && this.downClicks >= this.requiredClicks && !this.validationShown) {
       this.validationShown = true;
+      
+      await this.speak('Fantastique ! Tu as réussi ! Clique sur le bouton Valider pour passer à la suite.');
+      
       this.updateGameState({
         message: 'Bravo ! Cliquez sur Valider pour continuer',
         showValidateButton: true

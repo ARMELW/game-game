@@ -13,7 +13,7 @@ export class FreePracticePhase extends PhaseBase {
     super('free-practice', 'Exercices libres');
   }
 
-  execute(): void {
+  async execute(): Promise<void> {
     console.log('🔄 Phase 3: Exercices libres');
 
     // Débloquer tous les rouleaux
@@ -21,6 +21,10 @@ export class FreePracticePhase extends PhaseBase {
     this.sendToUnity('LockHundred', 0);
     this.sendToUnity('LockTen', 0);
     this.sendToUnity('LockUnit', 0);
+
+    // Message vocal d'introduction
+    await this.speak('Bravo ! Maintenant, c\'est l\'heure de t\'entraîner librement ! Je vais te donner des nombres à former, et tu utiliseras tout ce que tu as appris.');
+    await this.speak('Prends ton temps, et amuse-toi bien !');
 
     // Afficher l'interface
     this.updateGameState({
@@ -74,13 +78,26 @@ export class FreePracticePhase extends PhaseBase {
     });
   }
 
-  private validateExercise(): void {
+  private async validateExercise(): Promise<void> {
     console.log(`Validation: ${this.currentValue} vs ${this.currentTarget}`);
 
     if (this.currentValue === this.currentTarget) {
       // Correct !
       this.successCount++;
       console.log(`✓ Bravo! Succès: ${this.successCount}`);
+
+      // Messages vocaux variés selon le nombre de succès
+      if (this.successCount === 1) {
+        await this.speak('Bravo ! Tu as réussi ton premier exercice !');
+      } else if (this.successCount === 3) {
+        await this.speak('Excellent ! Trois exercices de suite ! Tu es en pleine forme !');
+      } else if (this.successCount === 5) {
+        await this.speak('Incroyable ! Cinq exercices ! Tu es vraiment doué !');
+      } else if (this.successCount % 5 === 0) {
+        await this.speak(`Fantastique ! ${this.successCount} exercices réussis ! Continue comme ça !`);
+      } else {
+        await this.speak('Parfait !');
+      }
 
       this.updateGameState({
         message: '✓ Bravo !',
@@ -97,6 +114,8 @@ export class FreePracticePhase extends PhaseBase {
       // Incorrect
       console.log('✗ Pas correct, réessayez');
 
+      await this.speak('Hmmm, ce n\'est pas tout à fait ça. Regarde bien le nombre demandé et réessaie !');
+
       this.updateGameState({
         message: '✗ Pas tout à fait... Réessayez !',
         showValidateButton: true,
@@ -105,8 +124,10 @@ export class FreePracticePhase extends PhaseBase {
     }
   }
 
-  private exitTutorial(): void {
+  private async exitTutorial(): Promise<void> {
     console.log(`Fin du tutoriel. Exercices réussis: ${this.successCount}`);
+
+    await this.speak(`Félicitations ! Tu as réussi ${this.successCount} exercice${this.successCount > 1 ? 's' : ''} ! Tu as fait un excellent travail ! À bientôt pour de nouvelles aventures !`);
 
     this.updateGameState({
       message: `Félicitations ! Vous avez réussi ${this.successCount} exercice(s).`,
