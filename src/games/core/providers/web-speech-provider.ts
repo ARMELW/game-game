@@ -95,6 +95,19 @@ class WebSpeechProvider implements ISpeechProvider {
       }
       
       this.synthesis.speak(utterance);
+
+      // Lightweight fallback: if synthesis doesn't start within 50ms, try to resume
+      // This is much faster than the original 100ms and only triggers if needed
+      const fallbackTimer = setTimeout(() => {
+        if (!this.speaking && this.synthesis.pending) {
+          this.synthesis.resume();
+        }
+      }, 50);
+
+      // Clear fallback timer once speech starts
+      utterance.addEventListener('start', () => {
+        clearTimeout(fallbackTimer);
+      }, { once: true });
     });
   }
 
