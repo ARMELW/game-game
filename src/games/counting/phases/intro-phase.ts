@@ -7,10 +7,10 @@ export class IntroPhase extends PhaseBase {
 
     constructor() {
         super('interactive', 'Phase Interactive');
-       appEventHub.on('sendToPhase', (message: any) => {
-            console.log('Message reçu dans IntroPhase :', message);
-            // Traitez le message ici
-        });
+        window.onUnityMessage = (message: any) => {
+            console.log('Unity message received:mec', message);
+
+        };
     }
     execute(): void | Promise<void> {
         console.log('state manager', this.getState());

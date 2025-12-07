@@ -17,10 +17,7 @@ export class UnityBridge extends AbstractBridge {
 
 
   protected setupReceiver(): void {
-    window.onUnityMessage = (message: any) => {
-      console.log('Unity message received:', message);
-      appEventHub.sendToPhase(message);
-    };
+   
   }
 
   protected sendRaw(message: { type: string; data: any }): void {
