@@ -23,7 +23,7 @@ export class IntroPhase extends PhaseBase {
       console.log('Unity message received:', data);
       
       // Extract and format the value
-      const valueStr = data.value || IntroPhase.PAD_CHARACTER;
+      const valueStr = data.value || IntroPhase.PAD_CHARACTER; // Fallback to '0' if no value
       this.currentValue = valueStr.padStart(IntroPhase.VALUE_LENGTH, IntroPhase.PAD_CHARACTER);
       
       console.log('Current value updated:', this.currentValue);
