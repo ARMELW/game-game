@@ -25,5 +25,13 @@ export const MESSAGE_REGISTRY: MessageRegistry = {
     'LockUnit': {
         type: 'LockUnit',
         direction: 'toUnity'
+    },
+    'UnityRawMessage': {
+        type: 'UnityRawMessage',
+        direction: 'fromUnity'
+    },
+    'SetValueUpdate': {
+        type: 'SetValueUpdate',
+        direction: 'fromUnity'
     }
 };

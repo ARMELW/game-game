@@ -8,17 +8,51 @@ export class UnityBridge extends AbstractBridge {
   constructor(debug: boolean = false) {
     super(MESSAGE_REGISTRY, debug);
     this.setupReceiver();
-    // We don't auto-check for window.unityInstance anymore
   }
 
   public setSendMessage(sendMessage: (gameObjectName: string, methodName: string, parameter?: string | number | boolean) => void) {
     this.sendMessageCallback = sendMessage;
     this.setReady(true);
-    //this.send('READY', '');
   }
 
   protected setupReceiver(): void {
+    window.onUnityMessage = (message: any) => {
+      console.log("[UnityBridge override] Message:", message);
+      try {
+        if (typeof message === 'string') {
+          try {
+            const parsed = JSON.parse(message);
+            if (parsed && typeof parsed === 'object') {
+              this.receiveMessage(parsed);
+              return;
+            }
+          } catch (e) {
+          }
 
+          this.receiveMessage({
+            type: 'UnityMessage',
+            data: message as any,
+            timestamp: Date.now()
+          });
+
+          // Specific parsers
+          if (message.startsWith('set value ')) {
+            const value = parseInt(message.replace('set value ', ''), 10);
+            if (!isNaN(value)) {
+              this.receiveMessage({
+                type: 'SetValue',
+                data: value as any,
+                timestamp: Date.now()
+              });
+            }
+          }
+        } else {
+          this.receiveMessage(message);
+        }
+      } catch (e) {
+        console.error("[UnityBridge] Failed to process message:", e);
+      }
+    };
   }
 
   protected sendRaw(message: { type: string; data: any }): void {
