@@ -16,6 +16,7 @@ export class ColumnUnderstandingPhase extends PhaseBase {
   private currentChallenge = 0;
   private currentTarget = '';
   private currentValue = '0000';
+  private waitingForValidation = false; // Prevent multiple listener registrations
 
   constructor() {
     super('column-understanding', 'Compréhension des colonnes');
@@ -142,6 +143,9 @@ export class ColumnUnderstandingPhase extends PhaseBase {
       return;
     }
 
+    // Reset validation flag
+    this.waitingForValidation = false;
+
     // Générer un nombre cible
     this.currentTarget = this.generateTargetForPosition(this.currentPosition);
     console.log(`Challenge ${this.currentChallenge + 1}/${this.challengesPerPosition} pour ${this.positionNames[this.currentPosition]}: ${this.currentTarget}`);
@@ -172,8 +176,10 @@ export class ColumnUnderstandingPhase extends PhaseBase {
     const targetDigit = this.currentTarget[3 - this.currentPosition];
     const currentDigit = this.currentValue[3 - this.currentPosition];
 
-    if (currentDigit === targetDigit) {
+    if (currentDigit === targetDigit && !this.waitingForValidation) {
       console.log(`✓ Challenge ${this.currentChallenge + 1} correct!`);
+      
+      this.waitingForValidation = true; // Prevent multiple listener registrations
       
       this.updateGameState({
         message: '✓ Parfait ! Clique sur Valider',
@@ -239,6 +245,7 @@ export class ColumnUnderstandingPhase extends PhaseBase {
     }
 
     this.currentTarget = numbers[this.currentChallenge];
+    this.waitingForValidation = false; // Reset validation flag
     
     // Réinitialiser
     this.sendToUnity('SetValue', '0000');
@@ -255,7 +262,9 @@ export class ColumnUnderstandingPhase extends PhaseBase {
 
     // Vérifier la progression
     const checkReview = () => {
-      if (this.currentValue === this.currentTarget) {
+      if (this.currentValue === this.currentTarget && !this.waitingForValidation) {
+        this.waitingForValidation = true; // Prevent multiple listener registrations
+        
         this.updateGameState({
           message: '✓ Excellent ! Clique sur Valider',
           showValidateButton: true
