@@ -77,6 +77,30 @@ L'application suit un parcours d'apprentissage progressif :
 7. **Phase Échange** (learn-carry) : Découverte de l'échange 10 pour 1
 8. **Mode Libre** (normal) : Manipulation libre des nombres
 
+### 🎙️ Assistant Vocal
+
+L'application intègre un **assistant vocal intelligent** qui accompagne l'enfant tout au long de l'apprentissage :
+
+- **Voix de professeur** : Ton pédagogique, encourageant et bienveillant
+- **Explications éducatives** : Explications claires sur chaque position (unité, dizaine, centaine, millième)
+- **Feedback immédiat** : Encouragements et corrections vocales en temps réel
+- **Progression guidée** : Instructions vocales pour chaque étape
+- **Multilingue** : Support du français (fr-FR) avec possibilité d'extension
+
+**Tutoriel en 3 phases avec voix :**
+
+1. **Phase 1 - Découverte des boutons** : Introduction vocale aux boutons ↑ et ↓, avec encouragements à chaque clic et limite à 3 pour apprendre la contrainte
+2. **Phase 2 - Compréhension des positions** : 
+   - Déblocage progressif (unité → dizaine → centaine → millième)
+   - Explications vocales détaillées pour chaque position
+   - 3 mini-défis par position pour pratiquer
+   - Révision finale avec 3 nombres complets
+3. **Phase 3 - Pratique libre** : Entraînement avec encouragements variés selon les réussites (1er, 3e, 5e exercice, etc.)
+
+**Documentation :**
+- [Guide d'implémentation de l'assistant vocal](docs/VOICE_ASSISTANT_IMPLEMENTATION.md)
+- [Résumé des fonctionnalités vocales](docs/VOICE_ASSISTANT_SUMMARY.md)
+
 ### 🎯 Suivi de Complétion des Phases
 
 Le système de suivi de complétion des phases permet de :
