@@ -3,10 +3,14 @@ import { AbstractBridge } from "../../core/services/abstract-bridge";
 
 export class UnityBridge extends AbstractBridge {
   private sendMessageCallback: ((gameObjectName: string, methodName: string, parameter?: string | number | boolean) => void) | null = null;
+  private unityMessageCallback: ((message: any) => void) | null = null;
   private checkReadyInterval: number | null = null;
 
-  constructor(debug: boolean = false) {
+  constructor(debug: boolean = false, unityMessageCallback?: (message: any) => void) {
     super(MESSAGE_REGISTRY, debug);
+    if (unityMessageCallback) {
+      this.unityMessageCallback = unityMessageCallback;
+    }
     this.setupReceiver();
   }
 
@@ -15,9 +19,22 @@ export class UnityBridge extends AbstractBridge {
     this.setReady(true);
   }
 
+  public setUnityMessageCallback(callback: (message: any) => void) {
+    this.unityMessageCallback = callback;
+  }
+
   protected setupReceiver(): void {
     window.onUnityMessage = (message: any) => {
+      console.log("[GLOBAL] window.onUnityMessage appelé avec:", message);
+      // ...existing code...
       console.log("[UnityBridge override] Message:", message);
+      if (this.unityMessageCallback) {
+        try {
+          this.unityMessageCallback(message);
+        } catch (e) {
+          console.error("[UnityBridge] unityMessageCallback error:", e);
+        }
+      }
       try {
         if (typeof message === 'string') {
           try {
@@ -56,21 +73,16 @@ export class UnityBridge extends AbstractBridge {
   }
 
   protected sendRaw(message: { type: string; data: any }): void {
-
     if (!this.sendMessageCallback) {
       console.warn('[Unity Bridge] SendMessage callback not set, message queued');
       return;
     }
-
     try {
-
       this.sendMessageCallback('WebBridge', 'ReceiveStringMessageFromJs', message.type + message.data);
-
     } catch (error) {
       console.error('[Unity Bridge] Error sending to Unity:', error);
     }
   }
-
 
   public isReady(): boolean {
     return this.ready;

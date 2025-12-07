@@ -3,7 +3,7 @@ import type { MessageRegistry } from "../../core/types/bridge-messages.types";
 export const MESSAGE_REGISTRY: MessageRegistry = {
     'SetValue': {
         type: 'SetValue',
-        direction: 'toUnity',
+        direction: 'fromUnity',
     },
 
     'ChangeList': {
