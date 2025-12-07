@@ -21,17 +21,6 @@ export function useUnity() {
   const { unityProvider, sendMessage, addEventListener, removeEventListener, isLoaded, loadingProgression } = unityContext;
 
   useEffect(() => {
-    if (isLoaded) {
-      // Inject the sendMessage function into the bridge singleton
-      // This connects the decoupled bridge logic with the React context
-      // We need to import unityBridge from the config
-      import('../games/counting/config/bridge').then(({ unityBridge }) => {
-        unityBridge.setSendMessage(sendMessage as any);
-      });
-    }
-  }, [isLoaded, sendMessage]);
-
-  useEffect(() => {
     if (loadingProgression === 1 && !isInitializedRef.current) {
       orchestratorRef.current = new QuizGameOrchestrator(quizStateManager);
       orchestratorRef.current.initialize();
