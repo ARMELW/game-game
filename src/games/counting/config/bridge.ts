@@ -1,7 +1,6 @@
 import { MESSAGE_REGISTRY } from "./message";
 import { AbstractBridge } from "../../core/services/abstract-bridge";
-import { createAppEventHub } from "./event";
-const appEvent = createAppEventHub();
+import { appEventHub } from "./event";
 export class UnityBridge extends AbstractBridge {
   private sendMessageCallback: ((gameObjectName: string, methodName: string, parameter?: string | number | boolean) => void) | null = null;
   private checkReadyInterval: number | null = null;
@@ -20,7 +19,7 @@ export class UnityBridge extends AbstractBridge {
   protected setupReceiver(): void {
     window.onUnityMessage = (message: any) => {
       console.log('Unity message received:', message);
-      appEvent.sendToPhase(message);
+      appEventHub.sendToPhase(message);
     };
   }
 
