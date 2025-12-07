@@ -1,8 +1,7 @@
 import { MESSAGE_REGISTRY } from "./message";
 import { AbstractBridge } from "../../core/services/abstract-bridge";
-import { appEventHub } from "./event";
 export class UnityBridge extends AbstractBridge {
-  private sendMessageCallback: ((gameObjectName: string, methodName: string, parameter?: string | number | boolean) => void) | null = null;
+  private sendMessageCallback: ((gameObjectName: string, methodName: string, parameter?: string | number) => void) | null = null;
   private checkReadyInterval: number | null = null;
 
   constructor(debug: boolean = false) {
@@ -10,14 +9,35 @@ export class UnityBridge extends AbstractBridge {
     this.setupReceiver();
   }
 
-  public setSendMessage(sendMessage: (gameObjectName: string, methodName: string, parameter?: string | number | boolean) => void) {
+  public setSendMessage(sendMessage: (gameObjectName: string, methodName: string, parameter?: string | number) => void) {
     this.sendMessageCallback = sendMessage;
     this.setReady(true);
   }
 
 
   protected setupReceiver(): void {
-   
+    // Configurer window.onUnityMessage pour recevoir les messages de Unity
+    (window as any).onUnityMessage = (message: string) => {
+      console.log('[Unity Bridge] Raw message from Unity:', message);
+      
+      // Parser le message de Unity
+      // Unity envoie "SetValueX" où X est la nouvelle valeur
+      if (message.startsWith('SetValue')) {
+        const value = message.substring(8); // Extraire la valeur après "SetValue"
+        this.receiveMessage({
+          type: 'SetValueUpdate',
+          data: { value },
+          timestamp: Date.now()
+        });
+      } else {
+        // Autres messages
+        this.receiveMessage({
+          type: 'UnityRawMessage',
+          data: { message },
+          timestamp: Date.now()
+        });
+      }
+    };
   }
 
   protected sendRaw(message: { type: string; data: any }): void {
@@ -42,7 +62,7 @@ export class UnityBridge extends AbstractBridge {
     }
     this.clearHandlers();
     this.clearQueue();
-    delete (window as any).receiveUnityMessage;
+    delete (window as any).onUnityMessage;
   }
 }
 
