@@ -34,11 +34,16 @@ export class ColumnFillPhase extends PhaseBase {
     // Reset validation flag
     this.validationHandled = false;
 
-    // Lock all columns, then unlock allowed ones
-    this.lockAll();
-    for (let i = 0; i <= this.maxPosition; i++) {
-      this.sendToUnity(this.lockCommands[i], 0);
+    // Ensure this column is within the allowed stage range
+    if (this.columnIndex > this.maxPosition) {
+      console.warn(`Column ${this.columnIndex} is beyond allowed stage max ${this.maxPosition}. Skipping.`);
+      this.complete();
+      return;
     }
+
+    // Lock all columns, then unlock ONLY the current column so we guide the user step-by-step
+    this.lockAll();
+    this.sendToUnity(this.lockCommands[this.columnIndex], 0);
 
     // Instructions vocales
     await this.speak(`Remplis maintenant la colonne des ${positionName}.`);
@@ -126,13 +131,16 @@ export class ColumnFillPhase extends PhaseBase {
 
     console.log(`✓ Colonne ${positionName} correcte: ${targetDigit}`);
 
-    this.speakNonBlocking('Parfait !');
+  this.speakNonBlocking('Parfait !');
 
     this.updateGameState({
       message: `✓ ${positionName} : ${targetDigit} - Correct !`,
       instruction: `Excellent ! La colonne des ${positionName} est correcte.`,
       showValidateButton: !autoAdvance
     });
+
+    // Lock the column now that it's correct to prevent accidental changes
+    this.sendToUnity(this.lockCommands[this.columnIndex], 1);
 
     if (autoAdvance) {
       setTimeout(() => {
