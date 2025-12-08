@@ -50,7 +50,7 @@ export class ColumnFillPhase extends PhaseBase {
     await this.speak(`C'est le moment de remplir la colonne des ${positionName}.`);
     await this.speak(`Seule cette colonne est débloquée pour que tu puisses te concentrer.`);
     await this.speak(`Pour obtenir le nombre ${this.targetNumber}, il faut mettre ${targetDigit} dans la colonne des ${positionName}.`);
-    await this.speak(`Utilise les boutons pour y placer le chiffre ${targetDigit}.`);
+    await this.speak(`Utilise les boutons pour y placer ${targetDigit}.`);
 
     this.updateGameState({
       message: `Colonne: ${positionName} → ${targetDigit}`,
