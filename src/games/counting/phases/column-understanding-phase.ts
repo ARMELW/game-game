@@ -1,9 +1,12 @@
 import { PhaseBase } from "../../core/phases/abstract-phase";
 
 /**
- * Phase 2: Compréhension des colonnes (Nouvelle version)
- * L'utilisateur remplit un nombre complet colonne par colonne
- * Avec assistance vocale pour chaque étape et gestion des erreurs
+ * Phase 2: Compréhension des colonnes (Version progressive)
+ * L'utilisateur apprend progressivement en ajoutant une colonne à la fois:
+ * 1. Unité seulement (3 nombres)
+ * 2. Unité + Dizaine (3 nombres)
+ * 3. Unité + Dizaine + Centaine (3 nombres)
+ * 4. Unité + Dizaine + Centaine + Millième (3 nombres)
  */
 export class ColumnUnderstandingPhase extends PhaseBase {
   // Positions : 0=unité, 1=dizaine, 2=centaine, 3=millième
@@ -11,9 +14,10 @@ export class ColumnUnderstandingPhase extends PhaseBase {
   private readonly lockCommands = ['LockUnit', 'LockTen', 'LockHundred', 'LockThousand'];
 
   // État de l'exercice
-  private currentNumbers: string[] = []; // 3 nombres à compléter
+  private currentStage = 0; // 0=Unité, 1=Unité+Dizaine, 2=Unité+Dizaine+Centaine, 3=Tous
+  private currentNumbers: string[] = []; // 3 nombres à compléter pour le stage actuel
   private currentNumberIndex = 0;
-  private currentPosition = 0; // Position actuelle (0-3)
+  private currentPosition = 0; // Position actuelle en cours de remplissage
   private currentValue = '0000';
   private targetNumber = '';
   private validationHandled = false; // Flag to prevent duplicate event handlers
@@ -23,29 +27,21 @@ export class ColumnUnderstandingPhase extends PhaseBase {
   }
 
   async execute(): Promise<void> {
-    console.log('📊 Phase 2: Compréhension des colonnes - Nouvelle version');
+    console.log('📊 Phase 2: Compréhension des colonnes - Version progressive');
     
     // Tout bloquer au départ
     this.lockAll();
     
     // Message d'introduction
     await this.speak('Bravo pour avoir maîtrisé les boutons !');
-    await this.speak('Maintenant, nous allons apprendre à former des nombres complets, colonne par colonne.');
-    await this.speak('Je vais te donner un nombre, et tu vas le former en remplissant chaque colonne une par une.');
-    await this.speak('Commençons par l\'Unité, puis la Dizaine, la Centaine, et enfin le Millième.');
+    await this.speak('Maintenant, nous allons apprendre à former des nombres, colonne par colonne.');
+    await this.speak('Nous allons commencer doucement avec les Unités, puis ajouter progressivement les autres colonnes.');
     
     this.updateGameState({
       message: 'Préparation de l\'exercice...',
-      instruction: 'Nous allons former 3 nombres ensemble. Pour chaque nombre, tu rempliras les colonnes une par une, en commençant par l\'Unité.',
+      instruction: 'Nous allons apprendre progressivement. D\'abord les Unités, puis les Dizaines, ensuite les Centaines, et enfin les Millièmes.',
       showValidateButton: false
     });
-
-    // Générer 3 nombres aléatoires
-    this.currentNumbers = this.generateRandomNumbers(3);
-    console.log('Nombres générés:', this.currentNumbers);
-
-    // Réinitialiser la machine
-    this.sendToUnity('SetValue', '0000');
 
     // Écouter les changements de valeur
     this.onUnityEvent('SetValueUpdate', (data: { value?: string }) => {
@@ -56,17 +52,87 @@ export class ColumnUnderstandingPhase extends PhaseBase {
 
     // Attendre 2 secondes puis commencer
     setTimeout(() => {
+      this.startStage();
+    }, 2000);
+  }
+
+  private async startStage(): Promise<void> {
+    if (this.currentStage > 3) {
+      // Tous les stages terminés
+      await this.completePhase();
+      return;
+    }
+
+    const stageNames = [
+      'Unité seulement',
+      'Unité et Dizaine',
+      'Unité, Dizaine et Centaine',
+      'Toutes les colonnes'
+    ];
+
+    console.log(`Démarrage du stage ${this.currentStage + 1}: ${stageNames[this.currentStage]}`);
+
+    // Générer 3 nombres pour ce stage
+    this.currentNumbers = this.generateNumbersForStage(this.currentStage);
+    this.currentNumberIndex = 0;
+
+    // Annoncer le stage
+    await this.speak(`Étape ${this.currentStage + 1}: ${stageNames[this.currentStage]}`);
+    
+    let instruction = '';
+    switch (this.currentStage) {
+      case 0:
+        await this.speak('Commençons par apprendre les Unités. Tu vas former 3 nombres en utilisant seulement la colonne des Unités.');
+        instruction = 'Apprentissage des Unités : Tu vas former 3 nombres en utilisant seulement la colonne des Unités.';
+        break;
+      case 1:
+        await this.speak('Maintenant, ajoutons les Dizaines ! Tu vas former 3 nombres avec les Unités et les Dizaines.');
+        instruction = 'Apprentissage Unités + Dizaines : Tu vas former 3 nombres en utilisant les colonnes des Unités et Dizaines.';
+        break;
+      case 2:
+        await this.speak('Parfait ! Ajoutons maintenant les Centaines. Tu vas former 3 nombres avec Unités, Dizaines et Centaines.');
+        instruction = 'Apprentissage Unités + Dizaines + Centaines : Tu vas former 3 nombres en utilisant ces trois colonnes.';
+        break;
+      case 3:
+        await this.speak('Dernière étape ! Nous allons maintenant utiliser toutes les colonnes, y compris les Millièmes.');
+        instruction = 'Apprentissage complet : Tu vas former 3 nombres en utilisant toutes les colonnes !';
+        break;
+    }
+
+    this.updateGameState({
+      instruction: instruction,
+      message: `Étape ${this.currentStage + 1}/4: ${stageNames[this.currentStage]}`
+    });
+
+    // Attendre un peu puis commencer le premier nombre
+    setTimeout(() => {
       this.startNewNumber();
     }, 2000);
   }
 
-  private generateRandomNumbers(count: number): string[] {
+  private generateNumbersForStage(stage: number): string[] {
     const numbers: string[] = [];
-    for (let i = 0; i < count; i++) {
-      // Générer des nombres entre 1000 et 9999 pour avoir au moins le chiffre des milliers non-nul
-      const num = Math.floor(Math.random() * 9000) + 1000; // Entre 1000 et 9999
-      numbers.push(num.toString().padStart(4, '0'));
+    
+    for (let i = 0; i < 3; i++) {
+      let num = '';
+      switch (stage) {
+        case 0: // Unité seulement (1-9)
+          num = (Math.floor(Math.random() * 9) + 1).toString().padStart(4, '0');
+          break;
+        case 1: // Unité + Dizaine (10-99)
+          num = (Math.floor(Math.random() * 90) + 10).toString().padStart(4, '0');
+          break;
+        case 2: // Unité + Dizaine + Centaine (100-999)
+          num = (Math.floor(Math.random() * 900) + 100).toString().padStart(4, '0');
+          break;
+        case 3: // Tous (1000-9999)
+          num = (Math.floor(Math.random() * 9000) + 1000).toString().padStart(4, '0');
+          break;
+      }
+      numbers.push(num);
     }
+    
+    console.log(`Nombres générés pour stage ${stage}:`, numbers);
     return numbers;
   }
 
@@ -86,8 +152,8 @@ export class ColumnUnderstandingPhase extends PhaseBase {
 
   private async startNewNumber(): Promise<void> {
     if (this.currentNumberIndex >= this.currentNumbers.length) {
-      // Tous les nombres terminés
-      await this.completePhase();
+      // Tous les nombres de ce stage sont terminés
+      await this.completeStage();
       return;
     }
 
@@ -102,13 +168,12 @@ export class ColumnUnderstandingPhase extends PhaseBase {
     this.sendToUnity('ChangeList', this.targetNumber);
 
     // Annoncer le nombre
-    await this.speak(`Exercice numéro ${this.currentNumberIndex + 1} sur 3.`);
-    await this.speak(`Le nombre à former est : ${this.targetNumber}`);
+    await this.speak(`Nombre ${this.currentNumberIndex + 1} sur 3 : forme le nombre ${this.targetNumber}`);
     
     this.updateGameState({
       message: `Nombre ${this.currentNumberIndex + 1}/3 : ${this.targetNumber}`,
       targetNumber: this.targetNumber,
-      instruction: `Nombre à former : ${this.targetNumber}. Nous allons le remplir colonne par colonne.`,
+      instruction: `Nombre à former : ${this.targetNumber}. Commence par la colonne des Unités.`,
       showValidateButton: false
     });
 
@@ -119,6 +184,15 @@ export class ColumnUnderstandingPhase extends PhaseBase {
   }
 
   private async startColumn(): Promise<void> {
+    // Déterminer combien de colonnes sont actives pour ce stage
+    const maxPosition = this.currentStage; // stage 0 = 1 colonne, stage 1 = 2 colonnes, etc.
+    
+    if (this.currentPosition > maxPosition) {
+      // Toutes les colonnes pour ce nombre sont remplies
+      await this.completeNumber();
+      return;
+    }
+
     const positionName = this.positionNames[this.currentPosition];
     const targetDigit = this.targetNumber[3 - this.currentPosition];
     
@@ -132,7 +206,7 @@ export class ColumnUnderstandingPhase extends PhaseBase {
     this.sendToUnity(this.lockCommands[this.currentPosition], 0);
 
     // Instruction vocale
-    await this.speak(`Commençons par la colonne des ${positionName}.`);
+    await this.speak(`Remplis maintenant la colonne des ${positionName}.`);
     await this.speak(`Pour le nombre ${this.targetNumber}, la colonne des ${positionName} doit afficher ${targetDigit}.`);
     await this.speak(`Utilise les boutons pour mettre ${targetDigit} dans la colonne des ${positionName}.`);
 
@@ -163,9 +237,6 @@ export class ColumnUnderstandingPhase extends PhaseBase {
     if (currentDigit === targetDigit) {
       // Colonne correcte !
       this.handleColumnCorrect();
-    } else {
-      // La valeur a changé mais n'est pas encore correcte
-      // On ne compte pas comme erreur tant que l'utilisateur n'a pas essayé de valider
     }
   }
 
@@ -214,8 +285,10 @@ export class ColumnUnderstandingPhase extends PhaseBase {
 
     this.currentPosition++;
 
-    if (this.currentPosition >= 4) {
-      // Toutes les colonnes sont remplies
+    const maxPosition = this.currentStage;
+    
+    if (this.currentPosition > maxPosition) {
+      // Toutes les colonnes actives pour ce stage sont remplies
       await this.completeNumber();
     } else {
       // Passer à la colonne suivante
@@ -228,30 +301,52 @@ export class ColumnUnderstandingPhase extends PhaseBase {
 
   private async completeNumber(): Promise<void> {
     await this.speak('Excellent ! Tu as formé le nombre correctement !');
-    await this.speak(`Le nombre ${this.targetNumber} est maintenant complet.`);
-
+    
     this.updateGameState({
       message: `✓ Nombre ${this.currentNumberIndex + 1}/3 complété !`,
-      instruction: `Bravo ! Tu as réussi à former le nombre ${this.targetNumber} en remplissant chaque colonne.`,
-      successCount: this.currentNumberIndex + 1
+      instruction: `Bravo ! Tu as réussi à former le nombre ${this.targetNumber}.`,
+      successCount: (this.currentStage * 3) + this.currentNumberIndex + 1
     });
 
     this.currentNumberIndex++;
 
-    // Passer au nombre suivant ou terminer
+    // Passer au nombre suivant
     setTimeout(() => {
       this.startNewNumber();
-    }, 3000);
+    }, 2000);
+  }
+
+  private async completeStage(): Promise<void> {
+    const stageNames = [
+      'les Unités',
+      'les Unités et Dizaines',
+      'les Unités, Dizaines et Centaines',
+      'toutes les colonnes'
+    ];
+
+    await this.speak(`Bravo ! Tu maîtrises maintenant ${stageNames[this.currentStage]} !`);
+    
+    this.currentStage++;
+
+    if (this.currentStage <= 3) {
+      await this.speak('Passons à l\'étape suivante !');
+      setTimeout(() => {
+        this.startStage();
+      }, 3000);
+    } else {
+      // Tous les stages terminés
+      await this.completePhase();
+    }
   }
 
   private async completePhase(): Promise<void> {
-    await this.speak('Fantastique ! Tu as réussi tous les exercices !');
-    await this.speak('Tu maîtrises maintenant la formation des nombres colonne par colonne !');
+    await this.speak('Fantastique ! Tu as terminé tous les exercices !');
+    await this.speak('Tu sais maintenant former n\'importe quel nombre en remplissant les colonnes une par une !');
     await this.speak('Tu es prêt pour la suite !');
 
     this.updateGameState({
       message: '🎉 Phase terminée avec succès !',
-      instruction: 'Félicitations ! Tu sais maintenant comment former n\'importe quel nombre en remplissant les colonnes une par une.',
+      instruction: 'Félicitations ! Tu maîtrises maintenant toutes les colonnes et peux former n\'importe quel nombre.',
       showValidateButton: false
     });
 
