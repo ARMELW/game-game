@@ -164,5 +164,8 @@ export class SpeechService {
     return this.providerType;
   }
 }
+//const apiKey = 'sk_b60572be4449e744ada9b6e47c91df01b25bff05179dacdb';
+//const voiceId = 'imRmmzTqlLHt9Do1HufF';
+//const speechService = new SpeechService('elevenlabs',apiKey, voiceId);
 const speechService = new SpeechService();
 export { speechService };
