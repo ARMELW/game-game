@@ -11,7 +11,7 @@ export class NumberExercisePhase extends SequencePhase {
   constructor(
     exerciseNumber: number, // 1, 2, or 3
     targetNumber: string,
-    maxPosition: number, // Max column index for this stage (0=units only, 1=units+tens, etc.)
+    maxPosition: number,
     stageNumber: number
   ) {
     super(
@@ -19,6 +19,8 @@ export class NumberExercisePhase extends SequencePhase {
       buildNumberPhases(exerciseNumber, targetNumber, maxPosition, stageNumber),
       `Exercice ${exerciseNumber}/3`
     );
+
+  // stageNumber is only used to build the phase id and for child phases, no stored field required
   }
 }
 
@@ -30,14 +32,13 @@ function buildNumberPhases(
 ): PhaseBase[] {
   const phases: PhaseBase[] = [];
 
-  // Introduction de l'exercice avec annonce du nombre
   phases.push(new NumberIntroPhase(
     exerciseNumber,
     targetNumber,
+    maxPosition,
     stageNumber
   ));
 
-  // Pour chaque colonne à remplir (de 0 à maxPosition)
   for (let columnIndex = 0; columnIndex <= maxPosition; columnIndex++) {
     phases.push(new ColumnFillPhase(
       columnIndex,
@@ -46,10 +47,10 @@ function buildNumberPhases(
     ));
   }
 
-  // Complétion de l'exercice
   phases.push(new NumberCompletionPhase(
     exerciseNumber,
-    targetNumber
+    targetNumber,
+    maxPosition
   ));
 
   return phases;
@@ -62,27 +63,27 @@ class NumberIntroPhase extends PhaseBase {
   constructor(
     private exerciseNumber: number,
     private targetNumber: string,
-    private stageNumber: number
+    private maxPosition: number,
+    stageNumber: number
   ) {
-    super(
-      `number-intro-${stageNumber}-${exerciseNumber}`,
-      `Introduction Exercice ${exerciseNumber}`
-    );
+    super(`number-intro-${stageNumber}-${exerciseNumber}`, `Introduction Exercice ${exerciseNumber}`);
   }
 
   async execute(): Promise<void> {
     console.log(`🎯 Exercice ${this.exerciseNumber}/3: ${this.targetNumber}`);
 
-    // Réinitialiser la machine
+    const lockCommands = ['LockUnit:', 'LockTen:', 'LockHundred:', 'LockThousand:'];
+    for (let i = 0; i < lockCommands.length; i++) {
+      const lockValue = i <= this.maxPosition ? 0 : 1;
+      this.sendToUnity(lockCommands[i], lockValue);
+    }
+
     this.sendToUnity('SetValue', '0000');
 
-    // Envoyer le nombre cible à Unity
     console.log('Sending ChangeList ->', this.targetNumber);
     this.sendToUnity('ChangeList', this.targetNumber);
-
-    // Annonce vocale
+    
     await this.speak(`Très bien ! Exercice ${this.exerciseNumber}. À toi de former le nombre ${this.targetNumber}.`);
-
     this.updateGameState({
       message: `Nombre ${this.exerciseNumber}/3 : ${this.targetNumber}`,
       targetNumber: this.targetNumber,
@@ -101,9 +102,12 @@ class NumberIntroPhase extends PhaseBase {
  * Mini-phase: Complétion d'un exercice de nombre
  */
 class NumberCompletionPhase extends PhaseBase {
+  private readonly lockCommands = ['LockUnit:', 'LockTen:', 'LockHundred:', 'LockThousand:'];
+
   constructor(
     private exerciseNumber: number,
-    private targetNumber: string
+    private targetNumber: string,
+    private maxPosition: number
   ) {
     super(
       `number-completion-${exerciseNumber}`,
@@ -121,13 +125,13 @@ class NumberCompletionPhase extends PhaseBase {
       instruction: `Bravo ! Tu as réussi à former le nombre ${this.targetNumber}.`
     });
 
-    // Unlock all before next number
-    this.sendToUnity('LockThousand:', 0);
-    this.sendToUnity('LockHundred:', 0);
-    this.sendToUnity('LockTen:', 0);
-    this.sendToUnity('LockUnit:', 0);
+    // Restore the stage's allowed column unlocks (do NOT unlock all)
+    for (let i = 0; i < this.lockCommands.length; i++) {
+      const lockValue = i <= this.maxPosition ? 0 : 1; // 0 = unlock, 1 = lock
+      this.sendToUnity(this.lockCommands[i], lockValue);
+    }
 
-    // Pause avant le prochain nombre
+    // Pause before the next number
     await new Promise(resolve => setTimeout(resolve, NUMBER_COMPLETION_DELAY));
 
     this.complete();

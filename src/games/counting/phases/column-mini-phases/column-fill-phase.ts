@@ -41,11 +41,12 @@ export class ColumnFillPhase extends PhaseBase {
       return;
     }
 
-    // Lock all columns, then unlock ONLY the current column so we guide the user step-by-step
-    this.lockAll();
-    this.sendToUnity(this.lockCommands[this.columnIndex], 0);
+    for (let i = 0; i < this.lockCommands.length; i++) {
+      const cmd = this.lockCommands[i];
+      const lockValue = (i <= this.maxPosition && i <= this.columnIndex) ? 0 : 1; // 0 = unlock, 1 = lock
+      this.sendToUnity(cmd, lockValue);
+    }
 
-    // Instructions vocales
     await this.speak(`On s’occupe maintenant de la colonne des ${positionName}.`);
     await this.speak(`Pour obtenir le nombre ${this.targetNumber}, il faut mettre ${targetDigit} dans cette colonne.`);
     await this.speak(`Tu peux utiliser les boutons pour y placer ${targetDigit}.`);
@@ -57,7 +58,7 @@ export class ColumnFillPhase extends PhaseBase {
       showValidateButton: false
     });
 
-    // Listen for value updates
+
     this.onUnityEvent('SetValueUpdate', (data: { value?: string }) => {
       const valueStr = data.value || '0';
       this.currentValue = valueStr.padStart(4, '0');
@@ -81,15 +82,8 @@ export class ColumnFillPhase extends PhaseBase {
     });
   }
 
-  private lockAll(): void {
-    this.sendToUnity('LockThousand:', 1);
-    this.sendToUnity('LockHundred:', 1);
-    this.sendToUnity('LockTen:', 1);
-    this.sendToUnity('LockUnit:', 1);
-  }
 
   private checkProgress(autoAdvance = false): void {
-    // Check if previous columns are still correct
     for (let i = 0; i < this.columnIndex; i++) {
       const targetDigit = this.targetNumber[3 - i];
       const currentDigit = this.currentValue[3 - i];
@@ -99,7 +93,6 @@ export class ColumnFillPhase extends PhaseBase {
       }
     }
 
-    // Check current column
     const targetDigit = this.targetNumber[3 - this.columnIndex];
     const currentDigit = this.currentValue[3 - this.columnIndex];
 
@@ -138,9 +131,6 @@ export class ColumnFillPhase extends PhaseBase {
       instruction: `Excellent ! La colonne des ${positionName} est correcte.`,
       showValidateButton: !autoAdvance
     });
-
-    // Lock the column now that it's correct to prevent accidental changes
-    this.sendToUnity(this.lockCommands[this.columnIndex], 1);
 
     if (autoAdvance) {
       setTimeout(() => {

@@ -15,6 +15,13 @@ export class ColumnUnderstandingPhase extends SequencePhase {
   }
 }
 
+interface StageConfig {
+  number: number;
+  name: string;
+  description: string;
+  maxPosition: number;
+}
+
 function generateNumbersForStage(stageIndex: number): string[] {
   const numbers: string[] = [];
 
@@ -44,72 +51,43 @@ function generateNumbersForStage(stageIndex: number): string[] {
 function buildColumnPhases(): PhaseBase[] {
   const phases: PhaseBase[] = [];
 
-  // Introduction générale de la phase
   phases.push(new PhaseIntroductionPhase());
 
-  // Pour chaque stage (4 stages au total)
-  const stageConfigs = [
-    {
-      number: 1,
-      name: 'Unité seulement',
-      description: 'Commençons par apprendre les Unités. Tu vas former 3 nombres en utilisant seulement la colonne des Unités.',
-      maxPosition: 0, // Only units column (index 0)
-      lockCommand: 'LockUnit:'
-    },
-    {
-      number: 2,
-      name: 'Unité et Dizaine',
-      description: 'Maintenant, ajoutons les Dizaines ! Tu vas former 3 nombres avec les Unités et les Dizaines.',
-      maxPosition: 1, // Units and tens (index 0-1)
-      lockCommand: 'LockTen:'
-    },
-    {
-      number: 3,
-      name: 'Unité, Dizaine et Centaine',
-      description: 'Parfait ! Ajoutons maintenant les Centaines. Tu vas former 3 nombres avec Unités, Dizaines et Centaines.',
-      maxPosition: 2, // Units, tens, hundreds (index 0-2)
-      lockCommand: 'LockHundred:'
-    },
-    {
-      number: 4,
-      name: 'Toutes les colonnes',
-      description: 'Dernière étape ! Nous allons maintenant utiliser toutes les colonnes, y compris les Millièmes.',
-      maxPosition: 3, // All columns (index 0-3)
-      lockCommand: 'LockThousand:'
-    }
+  const stageConfigs: StageConfig[] = [
+    { number: 1, name: 'Unité seulement', description: 'Commençons par apprendre les Unités...', maxPosition: 0 },
+    { number: 2, name: 'Unité et Dizaine', description: 'Ajoutons les Dizaines...', maxPosition: 1 },
+    { number: 3, name: 'Unité, Dizaine et Centaine', description: 'Ajoutons maintenant les Centaines...', maxPosition: 2 },
+    { number: 4, name: 'Toutes les colonnes', description: 'Utilisons maintenant toutes les colonnes...', maxPosition: 3 }
   ];
 
-  stageConfigs.forEach((config, index) => {
-  // Unlock the columns allowed for this stage (units..maxPosition)
-  phases.push(new UnlockColumnPhase(config.maxPosition));
-
-    // Introduce the stage
-    phases.push(new StageIntroPhase(
-      config.number,
-      config.name,
-      config.description
-    ));
-
-    // Generate and execute 3 number exercises
-    const numbers = generateNumbersForStage(index);
-    for (let exerciseNum = 1; exerciseNum <= 3; exerciseNum++) {
-      phases.push(new NumberExercisePhase(
-        exerciseNum,
-        numbers[exerciseNum - 1],
-        config.maxPosition,
-        config.number
-      ));
-    }
-
-    // Complete the stage
-    phases.push(new StageCompletionPhase(
-      config.number,
-      config.name,
-      index === stageConfigs.length - 1 // isLastStage
-    ));
+  stageConfigs.forEach((stage, index) => {
+    phases.push(...buildStagePhases(stage, index === stageConfigs.length - 1));
   });
 
   phases.push(new PhaseCompletionPhase());
 
   return phases;
+}
+
+function buildStagePhases(stage: StageConfig, isLastStage: boolean): PhaseBase[] {
+  const stagePhases: PhaseBase[] = [];
+
+  // 1. Débloquer la colonne
+  stagePhases.push(new UnlockColumnPhase(stage.maxPosition));
+
+  // 2. Introduction du stage
+  stagePhases.push(new StageIntroPhase(stage.number, stage.name, stage.description));
+
+  // 3. Exercices (3 par stage)
+  const numbers = generateNumbersForStage(stage.number - 1);
+  numbers.slice(0, 3).forEach((value, i) => {
+    stagePhases.push(
+      new NumberExercisePhase(i + 1, value, stage.maxPosition, stage.number)
+    );
+  });
+
+  // 4. Fin du stage
+  stagePhases.push(new StageCompletionPhase(stage.number, stage.name, isLastStage));
+
+  return stagePhases;
 }
