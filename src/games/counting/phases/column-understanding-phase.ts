@@ -10,7 +10,7 @@ export class ColumnUnderstandingPhase extends PhaseBase {
   private currentPosition = 0;
   private readonly positionNames = ['Unité', 'Dizaine', 'Centaine', 'Millième'];
   private readonly lockCommands = ['LockUnit', 'LockTen', 'LockHundred', 'LockThousand'];
-  
+
   // Challenges
   private challengesPerPosition = 3;
   private currentChallenge = 0;
@@ -24,11 +24,18 @@ export class ColumnUnderstandingPhase extends PhaseBase {
 
   async execute(): Promise<void> {
     console.log('📊 Phase 2: Compréhension des colonnes');
-
+    this.lockAll();
     // Message d'introduction
     await this.speak('Bravo pour avoir maîtrisé les boutons ! Maintenant, nous allons découvrir le secret des nombres : les positions !');
-    await this.speak('Un nombre est composé de quatre positions : les millièmes, les centaines, les dizaines, et les unités.');
-    
+    await this.speak('Un nombre est composé de quatre positions');
+    await this.speak('les unités');
+    this.sendToUnity('LockUnit:', 0);
+    await this.speak('les dizaines');
+    this.sendToUnity('LockTen:', 0);
+    await this.speak('les centaines');
+    this.sendToUnity('LockHundred:', 0);
+    await this.speak('les millièmes');
+    this.sendToUnity('LockThousand:', 0);
     this.updateGameState({
       message: 'Découvrons les positions ensemble !',
       showValidateButton: false
@@ -105,23 +112,27 @@ export class ColumnUnderstandingPhase extends PhaseBase {
   }
 
   private async explainPosition(position: number): Promise<void> {
-    switch(position) {
+    switch (position) {
       case 0: // Unité
+        this.sendToUnity('LockUnit:', 0);
         await this.speak('Commençons par la position la plus à droite : l\'unité.');
         await this.speak('L\'unité représente les nombres de zéro à neuf. C\'est comme compter sur tes doigts d\'une seule main !');
         await this.speak('Tu peux avoir 0, 1, 2, 3, 4, 5, 6, 7, 8 ou 9 unités. Mais pas plus ! Essaie les boutons pour voir.');
         break;
       case 1: // Dizaine
+        this.sendToUnity('LockTen:', 0);
         await this.speak('Maintenant, découvrons la dizaine ! C\'est la deuxième position en partant de la droite.');
         await this.speak('Une dizaine, c\'est comme avoir 10 unités regroupées ensemble. On peut avoir jusqu\'à 9 dizaines, c\'est-à-dire 90 !');
         await this.speak('Quand tu as 1 à la position des dizaines, ça fait 10. Avec 2, ça fait 20. Et ainsi de suite !');
         break;
       case 2: // Centaine
+        this.sendToUnity('LockHundred:', 0);
         await this.speak('Passons à la centaine ! C\'est la troisième position.');
         await this.speak('Une centaine, c\'est comme avoir 100 unités, ou 10 dizaines regroupées. C\'est beaucoup !');
         await this.speak('Tu peux avoir de 0 à 9 centaines. Avec 1 centaine, tu as 100. Avec 5 centaines, tu as 500 !');
         break;
       case 3: // Millième
+        this.sendToUnity('LockThousand:', 0);
         await this.speak('Enfin, découvrons le millième ! C\'est la position la plus à gauche.');
         await this.speak('Un millième, c\'est énorme : mille unités ! Ou 100 dizaines, ou 10 centaines !');
         await this.speak('Avec 9 millièmes et tout rempli, on arrive jusqu\'à 9999. C\'est le plus grand nombre qu\'on peut faire avec cette machine !');
@@ -131,7 +142,7 @@ export class ColumnUnderstandingPhase extends PhaseBase {
 
   private async startChallenges(): Promise<void> {
     await this.speak(`Maintenant, faisons quelques petits exercices pour bien comprendre la position ${this.positionNames[this.currentPosition]} !`);
-    
+
     this.currentChallenge = 0;
     this.nextChallenge();
   }
@@ -178,36 +189,48 @@ export class ColumnUnderstandingPhase extends PhaseBase {
 
     if (currentDigit === targetDigit && !this.waitingForValidation) {
       console.log(`✓ Challenge ${this.currentChallenge + 1} correct!`);
-      
+
       this.waitingForValidation = true; // Prevent multiple listener registrations
-      
+
       this.updateGameState({
         message: '✓ Parfait ! Clique sur Valider',
-        showValidateButton: true
+        showValidateButton: false
       });
 
       // Écouter la validation (une seule fois)
       const handleValidate = () => {
         this.speakNonBlocking('Excellent !');
-        
+
         this.updateGameState({
           showValidateButton: false
         });
 
         this.currentChallenge++;
-        
+
         setTimeout(() => {
           this.nextChallenge();
         }, 1000);
       };
+      this.onUnityEvent('ValidButtonClicked', () => {
+            handleValidate();
+      });
+
+      this.onUnityEvent('CorrectValue', () => {
+
+      });
+
+      this.onUnityEvent('WrongValue', () => {
+
+      });
 
       this.onEvent('validateClick', handleValidate);
     }
   }
 
+
   private async completePosition(): Promise<void> {
     await this.speak(`Bravo ! Tu maîtrises maintenant la position ${this.positionNames[this.currentPosition]} !`);
-    
+
     this.currentPosition++;
 
     if (this.currentPosition < 4) {
@@ -227,13 +250,13 @@ export class ColumnUnderstandingPhase extends PhaseBase {
   private async startFinalReview(): Promise<void> {
     // Débloquer toutes les positions pour la révision finale
     this.unlockAll();
-    
+
     await this.speak('Pour terminer, forme 3 nombres complets en utilisant toutes les positions que tu as apprises !');
-    
+
     // Générer 3 nombres complets aléatoires
     const reviewNumbers = this.generateRandomNumbers(3);
     this.currentChallenge = 0;
-    
+
     this.doFinalReviewChallenge(reviewNumbers);
   }
 
@@ -246,7 +269,7 @@ export class ColumnUnderstandingPhase extends PhaseBase {
 
     this.currentTarget = numbers[this.currentChallenge];
     this.waitingForValidation = false; // Reset validation flag
-    
+
     // Réinitialiser
     this.sendToUnity('SetValue', '0000');
     this.currentValue = '0000';
@@ -264,7 +287,7 @@ export class ColumnUnderstandingPhase extends PhaseBase {
     const checkReview = () => {
       if (this.currentValue === this.currentTarget && !this.waitingForValidation) {
         this.waitingForValidation = true; // Prevent multiple listener registrations
-        
+
         this.updateGameState({
           message: '✓ Excellent ! Clique sur Valider',
           showValidateButton: true
@@ -272,13 +295,13 @@ export class ColumnUnderstandingPhase extends PhaseBase {
 
         const handleValidate = () => {
           this.speakNonBlocking('Parfait !');
-          
+
           this.updateGameState({
             showValidateButton: false
           });
 
           this.currentChallenge++;
-          
+
           setTimeout(() => {
             this.doFinalReviewChallenge(numbers);
           }, 1500);
@@ -298,7 +321,7 @@ export class ColumnUnderstandingPhase extends PhaseBase {
 
   private async completePhase(): Promise<void> {
     await this.speak('Magnifique ! Tu es maintenant un expert des positions ! Passe à la suite pour t\'entraîner librement !');
-    
+
     this.updateGameState({
       message: 'Vous maîtrisez maintenant toutes les positions !'
     });

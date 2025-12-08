@@ -32,7 +32,7 @@ export class DiscoveryPhase extends PhaseBase {
 
     // Message vocal d'introduction
     await this.speak('Bonjour !, Bienvenue dans l\'aventure des nombres ! Aujourd\'hui, nous allons apprendre ensemble comment fonctionne cette machine magique.');
-    await this.speak('Pour commencer, regarde les deux boutons : le bouton vert avec la flèche vers le haut pour augmenter, et le bouton rouge avec la flèche vers le bas pour diminuer.');
+    await this.speak('Pour commencer, regarde les deux boutons : le bouton vert avec l"icone plus pour augmenter, et le bouton rouge avec l"iconee moins vers le bas pour diminuer.');
     await this.speak('Clique 3 fois sur le bouton vert, puis 3 fois sur le bouton rouge. Allons-y !');
 
     // Mettre à jour l'état UI
