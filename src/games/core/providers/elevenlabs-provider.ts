@@ -1,8 +1,9 @@
 // providers/elevenlabs-provider.ts
+import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 import type { ISpeechProvider, SpeechConfig, SpeechCallbacks } from '../types/speech.types';
 
 export class ElevenLabsProvider implements ISpeechProvider {
-  private apiKey: string;
+  private client: ElevenLabsClient;
   private config: SpeechConfig = {
     lang: 'fr-FR',
     rate: 1.0,
@@ -12,10 +13,13 @@ export class ElevenLabsProvider implements ISpeechProvider {
   private callbacks: SpeechCallbacks = {};
   private speaking: boolean = false;
   private currentAudio: HTMLAudioElement | null = null;
-  private voiceId: string = 'default-voice-id'; // ID de la voix ElevenLabs
+  private voiceId: string = ''; // ID de la voix ElevenLabs par défaut
 
   constructor(apiKey: string, voiceId?: string) {
-    this.apiKey = apiKey;
+    this.client = new ElevenLabsClient({
+      apiKey: apiKey,
+
+    });
     if (voiceId) this.voiceId = voiceId;
   }
 
@@ -25,44 +29,38 @@ export class ElevenLabsProvider implements ISpeechProvider {
     this.callbacks.onStart?.();
 
     try {
-      // Appel à l'API ElevenLabs
-      const response = await fetch(
-        `https://api.elevenlabs.io/v1/text-to-speech/${this.voiceId}`,
+      // Conversion du texte en audio avec ElevenLabs SDK
+      const audio = await this.client.textToSpeech.convert(
+        this.voiceId,
         {
-          method: 'POST',
-          headers: {
-            'Accept': 'audio/mpeg',
-            'Content-Type': 'application/json',
-            'xi-api-key': this.apiKey,
+          text: text,
+          modelId: 'eleven_multilingual_v2',
+          outputFormat: 'mp3_44100_128',
+          voiceSettings: {
+            stability: 0.5,
+            similarityBoost: 0.75,
+            style: 0.0,
+            useSpeakerBoost: true,
           },
-          body: JSON.stringify({
-            text,
-            model_id: 'eleven_multilingual_v2',
-            voice_settings: {
-              stability: 0.5,
-              similarity_boost: 0.75,
-              style: 0.0,
-              use_speaker_boost: true,
-            },
-          }),
         }
       );
 
-      if (!response.ok) {
-        throw new Error(`ElevenLabs API error: ${response.status}`);
+      // Convertir le stream en blob
+      const chunks: Uint8Array[] = [];
+      for await (const chunk of audio) {
+        chunks.push(chunk);
       }
-
-      // Convertir la réponse en blob audio
-      const audioBlob = await response.blob();
+      
+      const audioBlob = new Blob(chunks, { type: 'audio/mpeg' });
       const audioUrl = URL.createObjectURL(audioBlob);
 
       // Créer et jouer l'audio
       return new Promise((resolve, reject) => {
-        const audio = new Audio(audioUrl);
-        audio.playbackRate = this.config.rate;
-        audio.volume = this.config.volume;
+        const audioElement = new Audio(audioUrl);
+        audioElement.playbackRate = this.config.rate;
+        audioElement.volume = this.config.volume;
 
-        audio.onended = () => {
+        audioElement.onended = () => {
           this.speaking = false;
           this.currentAudio = null;
           URL.revokeObjectURL(audioUrl);
@@ -70,7 +68,7 @@ export class ElevenLabsProvider implements ISpeechProvider {
           resolve();
         };
 
-        audio.onerror = () => {
+        audioElement.onerror = () => {
           this.speaking = false;
           this.currentAudio = null;
           URL.revokeObjectURL(audioUrl);
@@ -79,15 +77,15 @@ export class ElevenLabsProvider implements ISpeechProvider {
           reject(err);
         };
 
-        audio.ontimeupdate = () => {
-          if (audio.duration > 0) {
-            const progress = (audio.currentTime / audio.duration) * 100;
+        audioElement.ontimeupdate = () => {
+          if (audioElement.duration > 0) {
+            const progress = (audioElement.currentTime / audioElement.duration) * 100;
             this.callbacks.onProgress?.(progress);
           }
         };
 
-        this.currentAudio = audio;
-        audio.play().catch(reject);
+        this.currentAudio = audioElement;
+        audioElement.play().catch(reject);
       });
     } catch (error) {
       this.speaking = false;
@@ -131,18 +129,8 @@ export class ElevenLabsProvider implements ISpeechProvider {
 
   async getVoices(): Promise<string[]> {
     try {
-      const response = await fetch('https://api.elevenlabs.io/v1/voices', {
-        headers: {
-          'xi-api-key': this.apiKey,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch voices');
-      }
-
-      const data = await response.json();
-      return data.voices.map((v: any) => v.voice_id);
+      const voices = await this.client.voices.getAll();
+      return voices.voices.map((v) => v.voice_id);
     } catch (error) {
       console.error('Error fetching ElevenLabs voices:', error);
       return [];
@@ -151,12 +139,8 @@ export class ElevenLabsProvider implements ISpeechProvider {
 
   async isAvailable(): Promise<boolean> {
     try {
-      const response = await fetch('https://api.elevenlabs.io/v1/user', {
-        headers: {
-          'xi-api-key': this.apiKey,
-        },
-      });
-      return response.ok;
+      await this.client.user.get();
+      return true;
     } catch {
       return false;
     }

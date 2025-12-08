@@ -41,7 +41,7 @@ export function TutorialUI() {
   return (
     <div>
       {/* Instruction Panel with Typewriter Effect - Aside mode */}
-      {gameState.instruction && (
+      {/**{gameState.instruction && (
         <div
           style={{
             position: 'fixed',
@@ -66,7 +66,7 @@ export function TutorialUI() {
           </div>
           <TypewriterText text={gameState.instruction} speed={30} />
         </div>
-      )}
+      )}**/}
 
       {/* Main UI - Centered at top */}
       <div
