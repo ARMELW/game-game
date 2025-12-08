@@ -114,6 +114,30 @@ Le système de suivi de complétion des phases permet de :
 - [Guide API de Suivi des Phases](docs/PHASE_COMPLETION_TRACKING.md)
 - [Exemples d'Utilisation](docs/PHASE_COMPLETION_EXAMPLES.md)
 
+### 🏗️ Architecture Mini-Phases
+
+Le code a été refactorisé pour utiliser une **architecture modulaire de mini-phases** qui améliore la maintenabilité et facilite les modifications futures.
+
+**Avantages :**
+- 📦 **Modularité** : Chaque étape est une mini-phase indépendante
+- 🎤 **Séparation de la parole** : Instructions vocales organisées par mini-phase
+- 🧪 **Testabilité** : Chaque mini-phase peut être testée séparément
+- 📖 **Lisibilité** : Code plus clair et facile à comprendre
+- 🔧 **Maintenabilité** : Modifications localisées sans effets de bord
+
+**Documentation complète :**
+- [Architecture des Mini-Phases](docs/MINI_PHASES_ARCHITECTURE.md) - Description détaillée
+- [Guide de Migration](docs/MINI_PHASES_MIGRATION_GUIDE.md) - Comment migrer vers mini-phases
+
+**Exemple d'application :**
+La Phase 2 (Compréhension des colonnes) a été décomposée en 6 mini-phases :
+- `PhaseIntroductionPhase` : Introduction générale avec voix
+- `StageIntroPhase` : Introduction de chaque stage (4x)
+- `NumberExercisePhase` : Orchestration d'un exercice complet (12x)
+- `ColumnFillPhase` : Remplissage d'une colonne avec validation (variable)
+- `StageCompletionPhase` : Célébration de fin de stage (4x)
+- `PhaseCompletionPhase` : Conclusion finale avec voix
+
 **Utilisation rapide :**
 ```typescript
 // Vérifier le statut d'une phase
