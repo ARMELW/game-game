@@ -1,4 +1,5 @@
 import { PhaseBase } from "../../../core/phases/abstract-phase";
+import { AUTO_ADVANCE_DELAY } from "./timing-constants";
 
 const positionNames = ['Unité', 'Dizaine', 'Centaine', 'Millième'];
 
@@ -136,7 +137,7 @@ export class ColumnFillPhase extends PhaseBase {
     if (autoAdvance) {
       setTimeout(() => {
         this.advanceToNext();
-      }, 800);
+      }, AUTO_ADVANCE_DELAY);
     }
   }
 

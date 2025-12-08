@@ -1,4 +1,5 @@
 import { PhaseBase } from "../../../core/phases/abstract-phase";
+import { STAGE_INTRO_DELAY } from "./timing-constants";
 
 /**
  * Mini-phase: Introduction d'un stage
@@ -27,7 +28,7 @@ export class StageIntroPhase extends PhaseBase {
     });
 
     // Petite pause pour laisser le temps de lire
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, STAGE_INTRO_DELAY));
 
     this.complete();
   }

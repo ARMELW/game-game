@@ -1,6 +1,7 @@
 import { SequencePhase } from "../../../core/phases/sequence-phase";
 import { PhaseBase } from "../../../core/phases/abstract-phase";
 import { ColumnFillPhase } from "./column-fill-phase";
+import { NUMBER_INTRO_DELAY, NUMBER_COMPLETION_DELAY } from "./timing-constants";
 
 /**
  * Mini-phase: Exercice pour un nombre complet
@@ -90,7 +91,7 @@ class NumberIntroPhase extends PhaseBase {
     });
 
     // Pause avant de commencer
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, NUMBER_INTRO_DELAY));
 
     this.complete();
   }
@@ -127,7 +128,7 @@ class NumberCompletionPhase extends PhaseBase {
     this.sendToUnity('LockUnit:', 0);
 
     // Pause avant le prochain nombre
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, NUMBER_COMPLETION_DELAY));
 
     this.complete();
   }

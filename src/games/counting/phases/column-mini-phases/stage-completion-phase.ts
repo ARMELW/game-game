@@ -1,4 +1,5 @@
 import { PhaseBase } from "../../../core/phases/abstract-phase";
+import { STAGE_COMPLETION_DELAY } from "./timing-constants";
 
 /**
  * Mini-phase: Complétion d'un stage
@@ -33,7 +34,7 @@ export class StageCompletionPhase extends PhaseBase {
     });
 
     // Pause avant la transition
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await new Promise(resolve => setTimeout(resolve, STAGE_COMPLETION_DELAY));
 
     this.complete();
   }
