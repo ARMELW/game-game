@@ -17,10 +17,10 @@ export class FreePracticePhase extends PhaseBase {
     console.log('🔄 Phase 3: Exercices libres');
 
     // Débloquer tous les rouleaux
-    this.sendToUnity('LockThousand', 0);
-    this.sendToUnity('LockHundred', 0);
-    this.sendToUnity('LockTen', 0);
-    this.sendToUnity('LockUnit', 0);
+    this.sendToUnity('LockThousand:', 0);
+    this.sendToUnity('LockHundred:', 0);
+    this.sendToUnity('LockTen:', 0);
+    this.sendToUnity('LockUnit:', 0);
 
     // Message vocal d'introduction
     await this.speak('Bravo ! Maintenant, c\'est l\'heure de t\'entraîner librement ! Je vais te donner des nombres à former, et tu utiliseras tout ce que tu as appris.');
@@ -136,10 +136,10 @@ export class FreePracticePhase extends PhaseBase {
     });
 
     // Débloquer tous les rouleaux
-    this.sendToUnity('LockThousand', 0);
-    this.sendToUnity('LockHundred', 0);
-    this.sendToUnity('LockTen', 0);
-    this.sendToUnity('LockUnit', 0);
+    this.sendToUnity('LockThousand:', 0);
+    this.sendToUnity('LockHundred:', 0);
+    this.sendToUnity('LockTen:', 0);
+    this.sendToUnity('LockUnit:', 0);
 
     // Compléter la phase après 3 secondes
     setTimeout(() => {

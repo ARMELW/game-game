@@ -63,17 +63,17 @@ export class ColumnUnderstandingPhase extends PhaseBase {
   }
 
   private unlockAll(): void {
-    this.sendToUnity('LockThousand', 0);
-    this.sendToUnity('LockHundred', 0);
-    this.sendToUnity('LockTen', 0);
-    this.sendToUnity('LockUnit', 0);
+    this.sendToUnity('LockThousand:', 0);
+    this.sendToUnity('LockHundred:', 0);
+    this.sendToUnity('LockTen:', 0);
+    this.sendToUnity('LockUnit:', 0);
   }
 
   private lockAll(): void {
-    this.sendToUnity('LockThousand', 1);
-    this.sendToUnity('LockHundred', 1);
-    this.sendToUnity('LockTen', 1);
-    this.sendToUnity('LockUnit', 1);
+    this.sendToUnity('LockThousand:', 1);
+    this.sendToUnity('LockHundred:', 1);
+    this.sendToUnity('LockTen:', 1);
+    this.sendToUnity('LockUnit:', 1);
   }
 
   private async startPositionLearning(): Promise<void> {

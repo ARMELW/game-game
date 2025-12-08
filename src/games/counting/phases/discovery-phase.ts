@@ -23,15 +23,15 @@ export class DiscoveryPhase extends PhaseBase {
     this.sendToUnity('SetValue', '0000');
 
     // Bloquer milliers, centaines, dizaines
-    this.sendToUnity('LockThousand', 1);
-    this.sendToUnity('LockHundred', 1);
-    this.sendToUnity('LockTen', 1);
+    this.sendToUnity('LockThousand:', 1);
+    this.sendToUnity('LockHundred:', 1);
+    this.sendToUnity('LockTen:', 1);
 
     // Débloquer unités
-    this.sendToUnity('LockUnit', 0);
+    this.sendToUnity('LockUnit:', 0);
 
     // Message vocal d'introduction
-    await this.speak('Bonjour ! Je suis ton assistant vocal. Bienvenue dans l\'aventure des nombres ! Aujourd\'hui, nous allons apprendre ensemble comment fonctionne cette machine magique.');
+    await this.speak('Bonjour !, Bienvenue dans l\'aventure des nombres ! Aujourd\'hui, nous allons apprendre ensemble comment fonctionne cette machine magique.');
     await this.speak('Pour commencer, regarde les deux boutons : le bouton vert avec la flèche vers le haut pour augmenter, et le bouton rouge avec la flèche vers le bas pour diminuer.');
     await this.speak('Clique 3 fois sur le bouton vert, puis 3 fois sur le bouton rouge. Allons-y !');
 
