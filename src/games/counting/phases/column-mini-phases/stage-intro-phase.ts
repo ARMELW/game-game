@@ -19,6 +19,7 @@ export class StageIntroPhase extends PhaseBase {
 
     const introSentence = `On passe maintenant à l’étape ${this.stageNumber}. ${this.stageName}. ${this.stageDescription}.`;
     await this.speak(introSentence);
+    await this.speak(`Pour chaque nombre, je débloque une colonne à la fois pour que tu puisses te concentrer.`);
 
     // Mettre à jour l'interface
     this.updateGameState({

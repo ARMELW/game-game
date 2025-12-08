@@ -84,10 +84,11 @@ class NumberIntroPhase extends PhaseBase {
     this.sendToUnity('ChangeList', this.targetNumber);
     
     await this.speak(`Très bien ! Exercice ${this.exerciseNumber}. À toi de former le nombre ${this.targetNumber}.`);
+    await this.speak(`Je vais te guider colonne par colonne pour y arriver.`);
     this.updateGameState({
       message: `Nombre ${this.exerciseNumber}/3 : ${this.targetNumber}`,
       targetNumber: this.targetNumber,
-      instruction: `Nombre à former : ${this.targetNumber}. Commence par la colonne des Unités.`,
+      instruction: `Nombre à former : ${this.targetNumber}. Je vais débloquer les colonnes une par une en commençant par les Unités.`,
       showValidateButton: false
     });
 

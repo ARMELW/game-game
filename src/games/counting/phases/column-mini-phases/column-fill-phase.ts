@@ -47,14 +47,15 @@ export class ColumnFillPhase extends PhaseBase {
       this.sendToUnity(cmd, lockValue);
     }
 
-    await this.speak(`On s’occupe maintenant de la colonne des ${positionName}.`);
-    await this.speak(`Pour obtenir le nombre ${this.targetNumber}, il faut mettre ${targetDigit} dans cette colonne.`);
-    await this.speak(`Tu peux utiliser les boutons pour y placer ${targetDigit}.`);
+    await this.speak(`C'est le moment de remplir la colonne des ${positionName}.`);
+    await this.speak(`Seule cette colonne est débloquée pour que tu puisses te concentrer.`);
+    await this.speak(`Pour obtenir le nombre ${this.targetNumber}, il faut mettre ${targetDigit} dans la colonne des ${positionName}.`);
+    await this.speak(`Utilise les boutons pour y placer ${targetDigit}.`);
 
     this.updateGameState({
       message: `Colonne: ${positionName} → ${targetDigit}`,
       currentDigit: positionName,
-      instruction: `Remplis la colonne des ${positionName} avec le chiffre ${targetDigit}. Utilise les boutons ↑ et ↓ pour ajuster la valeur.`,
+      instruction: `Seule la colonne des ${positionName} est débloquée. Remplis-la avec le chiffre ${targetDigit} en utilisant les boutons ↑ et ↓.`,
       showValidateButton: false
     });
 
@@ -144,7 +145,7 @@ export class ColumnFillPhase extends PhaseBase {
       showValidateButton: false
     });
 
-    await this.speak('Très bien ! Passons à la colonne suivante.');
+    await this.speak('Très bien ! Je débloque maintenant la colonne suivante.');
 
     this.complete();
   }
