@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { quizStateManager } from '../games/counting/config/state';
+import { TypewriterText } from './TypewriterText';
 
 interface GameState {
   message?: string;
@@ -9,6 +10,7 @@ interface GameState {
   successCount?: number;
   targetNumber?: string;
   currentDigit?: string;
+  instruction?: string; // New: for typewriter instructions
 }
 
 export function TutorialUI() {
@@ -37,140 +39,171 @@ export function TutorialUI() {
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: '20px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 1000,
-        pointerEvents: 'none',
-      }}
-    >
-      {/* Message principal */}
-      {gameState.message && (
+    <div>
+      {/* Instruction Panel with Typewriter Effect - Aside mode */}
+      {gameState.instruction && (
         <div
           style={{
-            background: 'rgba(255, 255, 255, 0.95)',
-            padding: '16px 24px',
+            position: 'fixed',
+            right: '20px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 1000,
+            background: 'rgba(255, 255, 255, 0.98)',
+            padding: '24px',
             borderRadius: '12px',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-            marginBottom: '12px',
-            textAlign: 'center',
+            boxShadow: '0 6px 20px rgba(0, 0, 0, 0.2)',
+            maxWidth: '350px',
             fontFamily: 'Arial, sans-serif',
-            fontSize: '18px',
-            fontWeight: 'bold',
-            color: '#333',
-            whiteSpace: 'pre-line',
-            maxWidth: '600px',
-          }}
-        >
-          {gameState.message}
-        </div>
-      )}
-
-      {/* Progression */}
-      {gameState.progress && (
-        <div
-          style={{
-            background: 'rgba(59, 130, 246, 0.95)',
-            padding: '12px 20px',
-            borderRadius: '8px',
-            textAlign: 'center',
-            fontFamily: 'monospace',
             fontSize: '16px',
-            fontWeight: 'bold',
-            color: 'white',
-            marginBottom: '12px',
+            color: '#333',
+            lineHeight: '1.6',
+            border: '2px solid #3b82f6',
           }}
         >
-          {gameState.progress}
+          <div style={{ fontWeight: 'bold', marginBottom: '12px', color: '#3b82f6' }}>
+            📝 Instructions
+          </div>
+          <TypewriterText text={gameState.instruction} speed={30} />
         </div>
       )}
 
-      {/* Compteur de succès */}
-      {gameState.successCount !== undefined && gameState.successCount > 0 && (
-        <div
-          style={{
-            background: 'rgba(34, 197, 94, 0.95)',
-            padding: '8px 16px',
-            borderRadius: '8px',
-            textAlign: 'center',
-            fontFamily: 'Arial, sans-serif',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            color: 'white',
-            marginBottom: '12px',
-          }}
-        >
-          ✓ Exercices réussis : {gameState.successCount}
-        </div>
-      )}
-
-      {/* Boutons */}
+      {/* Main UI - Centered at top */}
       <div
         style={{
-          display: 'flex',
-          gap: '12px',
-          justifyContent: 'center',
-          pointerEvents: 'auto',
+          position: 'fixed',
+          top: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 1000,
+          pointerEvents: 'none',
         }}
       >
-        {gameState.showValidateButton && (
-          <button
-            onClick={handleValidate}
+        {/* Message principal */}
+        {gameState.message && (
+          <div
             style={{
-              padding: '12px 32px',
-              background: 'linear-gradient(to bottom right, #22c55e, #16a34a)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '16px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              padding: '16px 24px',
+              borderRadius: '12px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              marginBottom: '12px',
+              textAlign: 'center',
+              fontFamily: 'Arial, sans-serif',
+              fontSize: '18px',
               fontWeight: 'bold',
-              cursor: 'pointer',
-              boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.3)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+              color: '#333',
+              whiteSpace: 'pre-line',
+              maxWidth: '600px',
             }}
           >
-            Valider
-          </button>
+            {gameState.message}
+          </div>
         )}
 
-        {gameState.showQuitButton && (
-          <button
-            onClick={handleQuit}
+        {/* Progression */}
+        {gameState.progress && (
+          <div
             style={{
-              padding: '12px 32px',
-              background: 'linear-gradient(to bottom right, #ef4444, #dc2626)',
-              color: 'white',
-              border: 'none',
+              background: 'rgba(59, 130, 246, 0.95)',
+              padding: '12px 20px',
               borderRadius: '8px',
+              textAlign: 'center',
+              fontFamily: 'monospace',
               fontSize: '16px',
               fontWeight: 'bold',
-              cursor: 'pointer',
-              boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.3)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+              color: 'white',
+              marginBottom: '12px',
             }}
           >
-            Quitter
-          </button>
+            {gameState.progress}
+          </div>
         )}
+
+        {/* Compteur de succès */}
+        {gameState.successCount !== undefined && gameState.successCount > 0 && (
+          <div
+            style={{
+              background: 'rgba(34, 197, 94, 0.95)',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              textAlign: 'center',
+              fontFamily: 'Arial, sans-serif',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              color: 'white',
+              marginBottom: '12px',
+            }}
+          >
+            ✓ Exercices réussis : {gameState.successCount}
+          </div>
+        )}
+
+        {/* Boutons */}
+        <div
+          style={{
+            display: 'flex',
+            gap: '12px',
+            justifyContent: 'center',
+            pointerEvents: 'auto',
+          }}
+        >
+          {gameState.showValidateButton && (
+            <button
+              onClick={handleValidate}
+              style={{
+                padding: '12px 32px',
+                background: 'linear-gradient(to bottom right, #22c55e, #16a34a)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+              }}
+            >
+              Valider
+            </button>
+          )}
+
+          {gameState.showQuitButton && (
+            <button
+              onClick={handleQuit}
+              style={{
+                padding: '12px 32px',
+                background: 'linear-gradient(to bottom right, #ef4444, #dc2626)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+              }}
+            >
+              Quitter
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
