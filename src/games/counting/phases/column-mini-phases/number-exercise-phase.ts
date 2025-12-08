@@ -81,7 +81,7 @@ class NumberIntroPhase extends PhaseBase {
     this.sendToUnity('ChangeList', this.targetNumber);
 
     // Annonce vocale
-    await this.speak(`Nombre ${this.exerciseNumber} sur 3 : forme le nombre ${this.targetNumber}`);
+    await this.speak(`Très bien ! Exercice ${this.exerciseNumber}. À toi de former le nombre ${this.targetNumber}.`);
 
     this.updateGameState({
       message: `Nombre ${this.exerciseNumber}/3 : ${this.targetNumber}`,

@@ -11,20 +11,22 @@ export class PhaseIntroductionPhase extends PhaseBase {
   async execute(): Promise<void> {
     console.log('📊 Phase 2: Compréhension des colonnes - Introduction');
 
-    // Lock all columns initially
     this.sendToUnity('LockThousand:', 1);
     this.sendToUnity('LockHundred:', 1);
     this.sendToUnity('LockTen:', 1);
     this.sendToUnity('LockUnit:', 1);
 
-    // Vocal introduction
     await this.speak('Bravo pour avoir maîtrisé les boutons !');
     await this.speak('Maintenant, nous allons apprendre à former des nombres, colonne par colonne.');
     await this.speak('Un nombre est composé de quatre positions');
     await this.speak('les unités');
+    this.sendToUnity('LockUnit:', 0);
     await this.speak('les dizaines');
+    this.sendToUnity('LockTen:', 0);
     await this.speak('les centaines');
+    this.sendToUnity('LockHundred:', 0);
     await this.speak('les millièmes');
+    this.sendToUnity('LockThousand:', 0);
     await this.speak('Nous allons commencer doucement avec les Unités, puis ajouter progressivement les autres colonnes.');
 
     this.updateGameState({

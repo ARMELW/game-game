@@ -17,9 +17,8 @@ export class StageIntroPhase extends PhaseBase {
   async execute(): Promise<void> {
     console.log(`📢 Stage ${this.stageNumber}: ${this.stageName}`);
 
-    // Annonce vocale du stage
-    await this.speak(`Étape ${this.stageNumber}: ${this.stageName}`);
-    await this.speak(this.stageDescription);
+    const introSentence = `On passe maintenant à l’étape ${this.stageNumber}. ${this.stageName}. ${this.stageDescription}.`;
+    await this.speak(introSentence);
 
     // Mettre à jour l'interface
     this.updateGameState({

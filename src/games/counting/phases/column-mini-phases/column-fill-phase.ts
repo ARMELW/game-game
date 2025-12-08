@@ -10,7 +10,7 @@ const positionNames = ['Unité', 'Dizaine', 'Centaine', 'Millième'];
 export class ColumnFillPhase extends PhaseBase {
   private readonly positionNames = positionNames;
   private readonly lockCommands = ['LockUnit:', 'LockTen:', 'LockHundred:', 'LockThousand:'];
-  
+
   private currentValue = '0000';
   private validationHandled = false;
 
@@ -46,9 +46,9 @@ export class ColumnFillPhase extends PhaseBase {
     this.sendToUnity(this.lockCommands[this.columnIndex], 0);
 
     // Instructions vocales
-    await this.speak(`Remplis maintenant la colonne des ${positionName}.`);
-    await this.speak(`Pour le nombre ${this.targetNumber}, la colonne des ${positionName} doit afficher ${targetDigit}.`);
-    await this.speak(`Utilise les boutons pour mettre ${targetDigit} dans la colonne des ${positionName}.`);
+    await this.speak(`On s’occupe maintenant de la colonne des ${positionName}.`);
+    await this.speak(`Pour obtenir le nombre ${this.targetNumber}, il faut mettre ${targetDigit} dans cette colonne.`);
+    await this.speak(`Tu peux utiliser les boutons pour y placer ${targetDigit}.`);
 
     this.updateGameState({
       message: `Colonne: ${positionName} → ${targetDigit}`,
@@ -131,7 +131,7 @@ export class ColumnFillPhase extends PhaseBase {
 
     console.log(`✓ Colonne ${positionName} correcte: ${targetDigit}`);
 
-  this.speakNonBlocking('Parfait !');
+    this.speakNonBlocking('Parfait !');
 
     this.updateGameState({
       message: `✓ ${positionName} : ${targetDigit} - Correct !`,

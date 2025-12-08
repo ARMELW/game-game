@@ -1,20 +1,25 @@
 import { PhaseBase } from "../../../core/phases/abstract-phase";
-import { COLUMN_TRANSITION_DELAY } from './timing-constants';
 
 /**
  * Mini-phase: Unlock a column for the stage
  */
 export class UnlockColumnPhase extends PhaseBase {
-  constructor(private lockCommand: string) {
-    super(`unlock-${lockCommand}`, 'Unlock Column');
+  private readonly lockCommands = ['LockUnit:', 'LockTen:', 'LockHundred:', 'LockThousand:'];
+
+  constructor(private maxPosition: number) {
+    super(`unlock-stage-${maxPosition}`, 'Unlock Stage Columns');
   }
 
   async execute(): Promise<void> {
-    console.log(`🔓 Unlocking column for introduction: ${this.lockCommand}`);
-    // Temporarily unlock the column for demonstration and then lock it again
-    this.sendToUnity(this.lockCommand, 0);
-    await new Promise(resolve => setTimeout(resolve, COLUMN_TRANSITION_DELAY));
-    this.sendToUnity(this.lockCommand, 1);
+    console.log(`🔓 Unlocking columns up to position: ${this.maxPosition}`);
+
+    // Unlock the columns up to maxPosition and lock the rest
+    for (let i = 0; i < this.lockCommands.length; i++) {
+      const cmd = this.lockCommands[i];
+      const lockValue = i <= this.maxPosition ? 0 : 1; // 0 = unlock, 1 = lock
+      this.sendToUnity(cmd, lockValue);
+    }
+
     this.complete();
   }
 }

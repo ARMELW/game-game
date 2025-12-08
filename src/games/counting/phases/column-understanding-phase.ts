@@ -80,8 +80,8 @@ function buildColumnPhases(): PhaseBase[] {
   ];
 
   stageConfigs.forEach((config, index) => {
-    // Unlock the column for this stage
-    phases.push(new UnlockColumnPhase(config.lockCommand));
+  // Unlock the columns allowed for this stage (units..maxPosition)
+  phases.push(new UnlockColumnPhase(config.maxPosition));
 
     // Introduce the stage
     phases.push(new StageIntroPhase(
@@ -109,7 +109,6 @@ function buildColumnPhases(): PhaseBase[] {
     ));
   });
 
-  // Final completion
   phases.push(new PhaseCompletionPhase());
 
   return phases;
