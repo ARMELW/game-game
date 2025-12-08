@@ -16,8 +16,7 @@ export class ColumnUnderstandingPhase extends PhaseBase {
   private currentPosition = 0; // Position actuelle (0-3)
   private currentValue = '0000';
   private targetNumber = '';
-  private attempts = 0; // Nombre de tentatives pour la position actuelle
-  private maxAttempts = 3; // Maximum d'erreurs avant assistance supplémentaire
+  private validationHandled = false; // Flag to prevent duplicate event handlers
 
   constructor() {
     super('column-understanding', 'Compréhension des colonnes');
@@ -64,7 +63,7 @@ export class ColumnUnderstandingPhase extends PhaseBase {
   private generateRandomNumbers(count: number): string[] {
     const numbers: string[] = [];
     for (let i = 0; i < count; i++) {
-      // Générer des nombres avec au moins 2 chiffres non-nuls pour rendre l'exercice intéressant
+      // Générer des nombres entre 1000 et 9999 pour avoir au moins le chiffre des milliers non-nul
       const num = Math.floor(Math.random() * 9000) + 1000; // Entre 1000 et 9999
       numbers.push(num.toString().padStart(4, '0'));
     }
@@ -126,6 +125,9 @@ export class ColumnUnderstandingPhase extends PhaseBase {
     
     console.log(`Démarrage colonne: ${positionName}, chiffre cible: ${targetDigit}`);
     
+    // Reset validation flag
+    this.validationHandled = false;
+    
     // Tout bloquer puis débloquer uniquement la position actuelle
     this.lockAll();
     this.sendToUnity(this.lockCommands[this.currentPosition], 0);
@@ -141,8 +143,6 @@ export class ColumnUnderstandingPhase extends PhaseBase {
       instruction: `Remplis la colonne des ${positionName} avec le chiffre ${targetDigit}. Utilise les boutons ↑ et ↓ pour ajuster la valeur.`,
       showValidateButton: false
     });
-
-    this.attempts = 0;
   }
 
   private checkProgress(): void {
@@ -183,6 +183,12 @@ export class ColumnUnderstandingPhase extends PhaseBase {
   }
 
   private handleColumnCorrect(): void {
+    // Prevent duplicate event handlers
+    if (this.validationHandled) {
+      return;
+    }
+    this.validationHandled = true;
+
     const positionName = this.positionNames[this.currentPosition];
     const targetDigit = this.targetNumber[3 - this.currentPosition];
 

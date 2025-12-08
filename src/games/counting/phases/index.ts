@@ -14,6 +14,7 @@ export interface TutorialGameState {
     targetNumber: string;
     currentDigit: string;
     lastValue: number;
+    instruction?: string; // For typewriter instructions
 }
 
 export class QuizGameOrchestrator extends GameOrchestrator<TutorialGameState> {
@@ -34,7 +35,7 @@ export class QuizGameOrchestrator extends GameOrchestrator<TutorialGameState> {
     }
     protected setupPhases(): PhaseBase[] {
         return [
-            //new DiscoveryPhase(),
+            new DiscoveryPhase(),
             new ColumnUnderstandingPhase(),
             new FreePracticePhase()
         ];
