@@ -2,22 +2,30 @@
 
 ## Vue d'ensemble
 
-Cette mise à jour améliore considérablement la deuxième étape du tutoriel en implémentant un nouveau système d'apprentissage colonne par colonne avec assistance vocale renforcée et affichage des instructions en mode typewriter.
+Cette mise à jour améliore considérablement la deuxième étape du tutoriel en implémentant un **système d'apprentissage progressif** avec assistance vocale renforcée et affichage des instructions en mode typewriter.
 
 ## Changements Principaux
 
-### 1. Nouveau Flux d'Apprentissage
+### 1. Nouveau Flux d'Apprentissage Progressif
 
-**Avant:**
+**Avant (Version initiale):**
 - Apprentissage position par position (Unité seule, puis Dizaine seule, etc.)
 - 3 mini-challenges par position avec un seul chiffre non-nul
 - Focus sur une position à la fois
 
-**Après:**
+**Première révision:**
 - Formation de nombres complets (ex: 1234, 5678, 9012)
 - Remplissage progressif colonne par colonne pour chaque nombre
 - 3 nombres complets à former au total
 - Progression naturelle: Unité → Dizaine → Centaine → Millième
+
+**Après (Version actuelle - Apprentissage progressif):**
+- **Stage 1**: Unités seulement - 3 nombres (ex: 0001, 0004, 0008)
+- **Stage 2**: Unités + Dizaines - 3 nombres (ex: 0010, 0032, 0080)
+- **Stage 3**: Unités + Dizaines + Centaines - 3 nombres (ex: 0120, 0899, 0300)
+- **Stage 4**: Toutes les colonnes - 3 nombres (ex: 1234, 5678, 9012)
+- **Total**: 4 stages × 3 nombres = **12 exercices**
+- **Avantage**: Complexité croissante progressive pour meilleure compréhension
 
 ### 2. Interface Utilisateur Améliorée
 
@@ -94,23 +102,45 @@ Action:
 
 ```
 1. Verrouillage de toutes les colonnes
-2. Message vocal d'introduction (4 parties)
-3. Génération de 3 nombres aléatoires (1000-9999)
-4. Affichage du message de préparation
-5. Attente 2 secondes
-6. Démarrage du premier nombre
+2. Message vocal d'introduction (3 parties)
+3. Attente 2 secondes
+4. Démarrage du premier stage
 ```
 
-### Pour Chaque Nombre (x3)
+### Pour Chaque Stage (x4)
 
 ```
-Pour nombre N (ex: 1234):
+Stage 1: Unités seulement
+  - Annoncer le stage et son objectif
+  - Générer 3 nombres (1-9)
+  - Pour chaque nombre: remplir uniquement Unités
+  
+Stage 2: Unités + Dizaines
+  - Annoncer ajout des Dizaines
+  - Générer 3 nombres (10-99)
+  - Pour chaque nombre: remplir Unités puis Dizaines
+  
+Stage 3: Unités + Dizaines + Centaines
+  - Annoncer ajout des Centaines
+  - Générer 3 nombres (100-999)
+  - Pour chaque nombre: remplir Unités, Dizaines, puis Centaines
+  
+Stage 4: Toutes les colonnes
+  - Annoncer dernière étape avec Millièmes
+  - Générer 3 nombres (1000-9999)
+  - Pour chaque nombre: remplir toutes les colonnes
+```
+
+### Pour Chaque Nombre (x3 par stage)
+
+```
+Pour nombre N (ex Stage 2: 0032):
   
   1. Annoncer le numéro de l'exercice (1/3, 2/3, 3/3)
   2. Annoncer le nombre cible vocalement
   3. Afficher le nombre dans l'UI
   
-  Pour chaque colonne (Unité, Dizaine, Centaine, Millième):
+  Pour chaque colonne active dans ce stage:
     
     a. Verrouiller toutes les colonnes sauf la colonne actuelle
     b. Donner instruction vocale (3 parties)
@@ -128,7 +158,7 @@ Pour nombre N (ex: 1234):
     h. "Très bien ! Passons à la colonne suivante"
     i. Passer à la colonne suivante
   
-  4. Toutes les colonnes validées
+  4. Toutes les colonnes du stage validées
   5. Message de réussite vocal
   6. Incrémenter le compteur de succès
   7. Attendre 3 secondes
@@ -212,50 +242,62 @@ private async startColumn(): Promise<void> {
 
 ## Exemples d'Interaction
 
-### Scénario Complet: Nombre 1234
+### Scénario Complet: Apprentissage Progressif
 
-**Étape 1 - Unité (4):**
+**Stage 1 - Unités seulement:**
 ```
-Voix: "Commençons par la colonne des Unité"
-      "Pour le nombre 1234, la colonne des Unité doit afficher 4"
-      "Utilise les boutons pour mettre 4 dans la colonne des Unité"
+Voix: "Étape 1: Unité seulement"
+      "Commençons par apprendre les Unités. Tu vas former 3 nombres 
+       en utilisant seulement la colonne des Unités."
 
-Panel: "Remplis la colonne des Unité avec le chiffre 4. 
-        Utilise les boutons ↑ et ↓ pour ajuster la valeur."
+Nombre 1/3: 0003
+  → Remplis Unité avec 3 → Valider
+  → Voix: "Parfait !"
+  → UI: "✓ Nombre 1/3 complété !"
 
-UI:    Message: "Colonne: Unité → 4"
+Nombre 2/3: 0007
+  → Remplis Unité avec 7 → Valider
+  → Voix: "Parfait !"
 
-→ Utilisateur ajuste à 4
-→ Voix: "Parfait !"
-→ UI: "✓ Unité : 4 - Correct !"
-→ Bouton Valider apparaît
-→ Utilisateur clique Valider
-```
-
-**Étape 2 - Dizaine (3):**
-```
-Voix: "Très bien ! Passons à la colonne suivante"
-      "Commençons par la colonne des Dizaine"
-      ...
-
-[Même processus pour 3]
+Nombre 3/3: 0009
+  → Remplis Unité avec 9 → Valider
+  → Voix: "Bravo ! Tu maîtrises maintenant les Unités !"
+  → "Passons à l'étape suivante !"
 ```
 
-**Étapes 3 et 4:**
+**Stage 2 - Unités + Dizaines:**
 ```
-[Même processus pour Centaine (2) et Millième (1)]
+Voix: "Étape 2: Unité et Dizaine"
+      "Ajoutons les Dizaines ! Tu vas former 3 nombres 
+       avec les Unités et les Dizaines."
+
+Nombre 1/3: 0025
+  → Remplis Unité avec 5 → Valider
+  → Remplis Dizaine avec 2 → Valider
+  → UI: "✓ Nombre 1/3 complété !"
+
+Nombre 2/3: 0048
+  → Remplis Unité avec 8 → Valider
+  → Remplis Dizaine avec 4 → Valider
+
+Nombre 3/3: 0091
+  → Remplis Unité avec 1 → Valider
+  → Remplis Dizaine avec 9 → Valider
+  → Voix: "Bravo ! Tu maîtrises maintenant les Unités et Dizaines !"
 ```
 
-**Fin du nombre:**
+**Stage 3 - Unités + Dizaines + Centaines:**
 ```
-Voix: "Excellent ! Tu as formé le nombre correctement !"
-      "Le nombre 1234 est maintenant complet"
+Nombre 1/3: 0234
+  → Remplis Unité (4) → Dizaine (3) → Centaine (2)
+  → Chaque étape validée séparément
+```
 
-UI:    "✓ Nombre 1/3 complété !"
-Panel: "Bravo ! Tu as réussi à former le nombre 1234..."
-
-→ Attente 3 secondes
-→ Passage au nombre suivant
+**Stage 4 - Toutes les colonnes:**
+```
+Nombre 1/3: 5678
+  → Remplis Unité (8) → Dizaine (7) → Centaine (6) → Millième (5)
+  → Complétion finale de la phase
 ```
 
 ### Scénario d'Erreur
@@ -280,10 +322,22 @@ Panel: "⚠️ Attention : Tu as modifié une colonne précédente (Unité).
 ## Avantages de la Nouvelle Approche
 
 ### Pédagogiques
-✅ **Apprentissage plus naturel** - Formation de vrais nombres dès le début
-✅ **Contexte immédiat** - L'enfant voit le résultat final visé
-✅ **Progression logique** - Construction du nombre de droite à gauche
-✅ **Renforcement** - 3 répétitions pour ancrer l'apprentissage
+✅ **Apprentissage progressif** - Complexité ajoutée graduellement
+✅ **Maîtrise par étapes** - Chaque colonne est bien comprise avant d'ajouter la suivante
+✅ **Contexte clair** - L'enfant comprend le rôle de chaque colonne
+✅ **Renforcement** - 3 répétitions par stage pour ancrer l'apprentissage (12 exercices au total)
+✅ **Confiance progressive** - Succès précoces encouragent la poursuite
+
+### Comparaison des Approches
+
+| Aspect | Avant (tout à la fois) | Après (progressif) |
+|--------|------------------------|-------------------|
+| Nombres totaux | 3 | 12 |
+| Colonnes par nombre | 4 (toutes) | 1 → 2 → 3 → 4 |
+| Complexité initiale | Élevée | Basse |
+| Courbe d'apprentissage | Abrupte | Douce |
+| Sentiment de réussite | En fin seulement | À chaque stage |
+| Compréhension | Peut être confuse | Claire et structurée |
 
 ### UX/UI
 ✅ **Instructions claires** - Toujours visibles dans le panel
