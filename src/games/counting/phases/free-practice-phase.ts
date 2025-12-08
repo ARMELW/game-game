@@ -9,11 +9,21 @@ export class FreePracticePhase extends PhaseBase {
   private readonly positionNames = ['Unité', 'Dizaine', 'Centaine', 'Millième'];
   private readonly lockCommands = ['LockUnit:', 'LockTen:', 'LockHundred:', 'LockThousand:'];
   
+  // Délais en millisecondes pour les transitions
+  private readonly INTRO_DELAY_MS = 2000;
+  private readonly COLUMN_TRANSITION_DELAY_MS = 1000;
+  private readonly AUTO_ADVANCE_DELAY_MS = 800;
+  private readonly EXERCISE_COMPLETION_DELAY_MS = 2000;
+  
   private currentTarget = '';
   private successCount = 0;
   private currentValue = '0000';
   private currentPosition = 0; // Position actuelle en cours de remplissage (0=unité, 1=dizaine, etc.)
+  
+  /** Flag pour éviter les validations en double lors de l'avancement automatique */
   private validationHandled = false;
+  
+  /** Flag pour s'assurer que le gestionnaire de validation n'est enregistré qu'une seule fois */
   private validateHandlerRegistered = false;
 
   constructor() {
@@ -66,7 +76,7 @@ export class FreePracticePhase extends PhaseBase {
     // Commencer le premier exercice
     setTimeout(() => {
       this.startNewExercise();
-    }, 2000);
+    }, this.INTRO_DELAY_MS);
   }
 
   private lockAll(): void {
@@ -169,7 +179,7 @@ export class FreePracticePhase extends PhaseBase {
       // Slight delay for UX so user sees feedback
       setTimeout(() => {
         this.nextColumn();
-      }, 800);
+      }, this.AUTO_ADVANCE_DELAY_MS);
       return;
     }
 
@@ -209,7 +219,7 @@ export class FreePracticePhase extends PhaseBase {
       // Passer à la colonne suivante
       setTimeout(() => {
         this.startColumn();
-      }, 1000);
+      }, this.COLUMN_TRANSITION_DELAY_MS);
     }
   }
 
@@ -241,7 +251,7 @@ export class FreePracticePhase extends PhaseBase {
     // Attendre 2 secondes puis nouveau nombre
     setTimeout(() => {
       this.startNewExercise();
-    }, 2000);
+    }, this.EXERCISE_COMPLETION_DELAY_MS);
   }
 
   private startNewExercise(): void {
@@ -271,7 +281,7 @@ export class FreePracticePhase extends PhaseBase {
     // Commencer par la première colonne (unités)
     setTimeout(() => {
       this.startColumn();
-    }, 2000);
+    }, this.INTRO_DELAY_MS);
   }
 
   private async exitTutorial(): Promise<void> {
