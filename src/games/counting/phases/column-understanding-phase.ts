@@ -93,7 +93,6 @@ export class ColumnUnderstandingPhase extends PhaseBase {
 
     this.targetNumber = this.currentNumbers[this.currentNumberIndex];
     this.currentPosition = 0; // Recommencer à l'unité
-    this.attempts = 0;
 
     // Réinitialiser la machine
     this.sendToUnity('SetValue', '0000');
