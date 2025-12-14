@@ -28,6 +28,7 @@ export class UnityBridge extends AbstractBridge {
       console.log('[Unity Bridge] Raw message from Unity:', message);
 
       if (message.match(UnityBridge.VALID_BUTTON_PATTERN)) {
+        console.log('Received ValidButtonClicked from Unity');
         this.receiveMessage({
           type: 'ValidButtonClicked',
           data: {},

@@ -48,8 +48,8 @@ export class ColumnFillPhase extends PhaseBase {
     }
 
     await this.speak(`C'est le moment de remplir la colonne des ${positionName}.`);
-    await this.speak(`Seule cette colonne est débloquée pour que tu puisses te concentrer.`);
-    await this.speak(`Pour obtenir le nombre ${this.targetNumber}, il faut mettre ${targetDigit} dans la colonne des ${positionName}.`);
+    //await this.speak(`Seule cette colonne est débloquée pour que tu puisses te concentrer.`);
+    await this.speak(`Pour obtenir le nombre ${Number(this.targetNumber)}, il faut mettre ${targetDigit} dans la colonne des ${positionName}.`);
     await this.speak(`Utilise les boutons pour y placer ${targetDigit}.`);
 
     this.updateGameState({
@@ -77,6 +77,14 @@ export class ColumnFillPhase extends PhaseBase {
 
     // Listen for manual validation button
     this.onEvent('validateClick', () => {
+      console.log('ici leka')
+      if (this.validationHandled) {
+        this.advanceToNext();
+      }
+    });
+
+    this.onUnityEvent('ValidButtonClicked', () => {
+      console.log('Received ValidButtonClicked from Unity oui');
       if (this.validationHandled) {
         this.advanceToNext();
       }
@@ -130,7 +138,7 @@ export class ColumnFillPhase extends PhaseBase {
     this.updateGameState({
       message: `✓ ${positionName} : ${targetDigit} - Correct !`,
       instruction: `Excellent ! La colonne des ${positionName} est correcte.`,
-      showValidateButton: !autoAdvance
+      showValidateButton:  !autoAdvance
     });
 
     if (autoAdvance) {
@@ -145,7 +153,7 @@ export class ColumnFillPhase extends PhaseBase {
       showValidateButton: false
     });
 
-    await this.speak('Très bien ! Je débloque maintenant la colonne suivante.');
+    //await this.speak('Très bien ! Je débloque maintenant la colonne suivante.');
 
     this.complete();
   }

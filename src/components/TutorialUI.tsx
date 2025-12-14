@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { quizStateManager } from '../games/counting/config/state';
 import { TypewriterText } from './TypewriterText';
 
@@ -15,7 +15,11 @@ interface GameState {
 
 export function TutorialUI() {
   const [gameState, setGameState] = useState<GameState>({});
-
+  const [typedInstruction, setTypedInstruction] = useState("");
+  const [typedFeedback, setTypedFeedback] = useState("");
+  const [isTypingInstruction, setIsTypingInstruction] = useState(false);
+  const [isTypingFeedback, setIsTypingFeedback] = useState(false);
+  const typingTimeoutRef = useRef<number | null>(null);
   useEffect(() => {
     // Écouter les changements de state
     const unsubscribe = quizStateManager.on('gameStateChanged', (data: { updates: Partial<GameState> }) => {
@@ -38,69 +42,66 @@ export function TutorialUI() {
     quizStateManager.emit('quitClick', {});
   };
 
+
+  useEffect(() => {
+    if (!gameState.instruction) return;
+
+    setIsTypingInstruction(true);
+    setTypedInstruction("");
+    setTypedFeedback("");
+
+    let currentIndex = 0;
+    const instruction = gameState.instruction;
+    const typeNextChar = () => {
+      if (currentIndex <= instruction.length) {
+        setTypedInstruction(instruction.slice(0, currentIndex));
+        currentIndex++;
+        typingTimeoutRef.current = setTimeout(typeNextChar, 18);
+      } else {
+        setIsTypingInstruction(false);
+      }
+    };
+
+    typeNextChar();
+
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, [gameState.instruction]);
+
+  const displayText = useMemo(
+    () => typedInstruction,
+    [typedInstruction]
+  );
+
+  const isTyping = isTypingInstruction;
   return (
     <div>
-      {/* Instruction Panel with Typewriter Effect - Aside mode */}
-      {/**{gameState.instruction && (
-        <div
-          style={{
-            position: 'fixed',
-            right: '20px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            zIndex: 1000,
-            background: 'rgba(255, 255, 255, 0.98)',
-            padding: '24px',
-            borderRadius: '12px',
-            boxShadow: '0 6px 20px rgba(0, 0, 0, 0.2)',
-            maxWidth: '350px',
-            fontFamily: 'Arial, sans-serif',
-            fontSize: '16px',
-            color: '#333',
-            lineHeight: '1.6',
-            border: '2px solid #3b82f6',
-          }}
-        >
-          <div style={{ fontWeight: 'bold', marginBottom: '12px', color: '#3b82f6' }}>
-            📝 Instructions
+      <div className="flex-1 flex flex-col pt-12 px-4">
+        <div className="mb-4">
+          <div style={{
+            backgroundColor: 'oklch(0.52 0.1401 247.65)'
+          }} className="rounded-xl shadow-lg border border-slate-200 p-6 h-64 overflow-auto flex flex-col justify-between">
+            <div className="text-[15px] leading-relaxed text-white">
+              <p
+                className="m-0"
+                dangerouslySetInnerHTML={{
+                  __html: displayText.replace(
+                    /\*\*(.*?)\*\*/g,
+                    "<strong>$1</strong>"
+                  ),
+                }}
+              />
+              {isTyping && (
+                <span
+                  className="inline-block w-2 h-[14px] bg-white rounded animate-blink ml-0.5 align-text-bottom"
+                ></span>
+              )}
+            </div>
           </div>
-          <TypewriterText text={gameState.instruction} speed={30} />
         </div>
-      )}**/}
-
-      {/* Main UI - Centered at top */}
-      <div
-        style={{
-          position: 'fixed',
-          top: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 1000,
-          pointerEvents: 'none',
-        }}
-      >
-        {/* Message principal */}
-        {gameState.message && (
-          <div
-            style={{
-              background: 'rgba(255, 255, 255, 0.95)',
-              padding: '16px 24px',
-              borderRadius: '12px',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-              marginBottom: '12px',
-              textAlign: 'center',
-              fontFamily: 'Arial, sans-serif',
-              fontSize: '18px',
-              fontWeight: 'bold',
-              color: '#333',
-              whiteSpace: 'pre-line',
-              maxWidth: '600px',
-            }}
-          >
-            {gameState.message}
-          </div>
-        )}
-
         {/* Progression */}
         {gameState.progress && (
           <div
@@ -172,7 +173,7 @@ export function TutorialUI() {
                 e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
               }}
             >
-              Valider
+              Cliquez sur Valider
             </button>
           )}
 

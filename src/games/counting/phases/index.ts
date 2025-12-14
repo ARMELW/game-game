@@ -35,7 +35,7 @@ export class QuizGameOrchestrator extends GameOrchestrator<TutorialGameState> {
     }
     protected setupPhases(): PhaseBase[] {
         return [
-          //  new DiscoveryPhase(),
+            new DiscoveryPhase(),
             new ColumnUnderstandingPhase(),
             new FreePracticePhase()
         ];

@@ -82,13 +82,13 @@ class NumberIntroPhase extends PhaseBase {
 
     console.log('Sending ChangeList ->', this.targetNumber);
     this.sendToUnity('ChangeList', this.targetNumber);
-    
-    await this.speak(`Très bien ! Exercice ${this.exerciseNumber}. À toi de former le nombre ${this.targetNumber}.`);
+
+    await this.speak(`Très bien ! Exercice ${this.exerciseNumber}. À toi de former le nombre ${Number(this.targetNumber)}.`);
     await this.speak(`Je vais te guider colonne par colonne pour y arriver.`);
     this.updateGameState({
-      message: `Nombre ${this.exerciseNumber}/3 : ${this.targetNumber}`,
+      message: `Nombre ${this.exerciseNumber}/3 : ${Number(this.targetNumber)}`,
       targetNumber: this.targetNumber,
-      instruction: `Nombre à former : ${this.targetNumber}. Je vais débloquer les colonnes une par une en commençant par les Unités.`,
+      instruction: `Nombre à former : ${Number(this.targetNumber)}. Je vais débloquer les colonnes une par une en commençant par les Unités.`,
       showValidateButton: false
     });
 
@@ -123,7 +123,7 @@ class NumberCompletionPhase extends PhaseBase {
 
     this.updateGameState({
       message: `✓ Nombre ${this.exerciseNumber}/3 complété !`,
-      instruction: `Bravo ! Tu as réussi à former le nombre ${this.targetNumber}.`
+      instruction: `Bravo ! Tu as réussi à former le nombre ${Number(this.targetNumber)}.`
     });
 
     // Restore the stage's allowed column unlocks (do NOT unlock all)

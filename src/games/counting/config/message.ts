@@ -33,5 +33,17 @@ export const MESSAGE_REGISTRY: MessageRegistry = {
     'SetValueUpdate': {
         type: 'SetValueUpdate',
         direction: 'fromUnity'
+    },
+    "ValidButtonClicked": {
+        type: "ValidButtonClicked",
+        direction: "fromUnity"
+    },
+    "CorrectValue": {
+        type: "CorrectValue",
+        direction: "fromUnity"
+    },
+    "WrongValue": {
+        type: "WrongValue",
+        direction: "fromUnity"
     }
 };

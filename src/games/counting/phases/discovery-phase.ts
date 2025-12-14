@@ -71,25 +71,12 @@ export class DiscoveryPhase extends PhaseBase {
       console.log(`↑ Click detected. Total: ${this.upClicks}/${this.requiredClicks}`);
       
       // Encouragement vocal (non-bloquant pour éviter les ralentissements)
-      if (this.upClicks === 1) {
-        this.speakNonBlocking('Excellent ! Continue comme ça !');
-      } else if (this.upClicks === 2) {
-        this.speakNonBlocking('Bravo ! Encore une fois !');
-      } else if (this.upClicks === 3) {
+      if (this.upClicks === 3) {
         this.speakNonBlocking('Parfait ! Maintenant, essayons le bouton rouge pour descendre.');
       }
     } else if (currentValue < lastValue) {
       this.downClicks++;
       console.log(`↓ Click detected. Total: ${this.downClicks}/${this.requiredClicks}`);
-      
-      // Encouragement vocal (non-bloquant pour éviter les ralentissements)
-      if (this.downClicks === 1) {
-        this.speakNonBlocking('Très bien ! Tu as compris !');
-      } else if (this.downClicks === 2) {
-        this.speakNonBlocking('Super ! Encore une fois !');
-      } else if (this.downClicks === 3) {
-        this.speakNonBlocking('Magnifique ! Tu maîtrises les boutons maintenant !');
-      }
     }
 
     // Sauvegarder la dernière valeur
