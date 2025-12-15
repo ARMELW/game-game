@@ -12,12 +12,13 @@ export class NumberExercisePhase extends SequencePhase {
     exerciseNumber: number, // 1, 2, or 3
     targetNumber: string,
     maxPosition: number,
-    stageNumber: number
+    stageNumber: number,
+    totalExercises: number = 3
   ) {
     super(
       `number-exercise-${stageNumber}-${exerciseNumber}`,
-      buildNumberPhases(exerciseNumber, targetNumber, maxPosition, stageNumber),
-      `Exercice ${exerciseNumber}/3`
+      buildNumberPhases(exerciseNumber, targetNumber, maxPosition, stageNumber, totalExercises),
+      `Exercice ${exerciseNumber}/${totalExercises}`
     );
 
   // stageNumber is only used to build the phase id and for child phases, no stored field required
@@ -28,7 +29,8 @@ function buildNumberPhases(
   exerciseNumber: number,
   targetNumber: string,
   maxPosition: number,
-  stageNumber: number
+  stageNumber: number,
+  totalExercises: number = 3
 ): PhaseBase[] {
   const phases: PhaseBase[] = [];
 
@@ -36,7 +38,8 @@ function buildNumberPhases(
     exerciseNumber,
     targetNumber,
     maxPosition,
-    stageNumber
+    stageNumber,
+    totalExercises
   ));
 
   for (let columnIndex = 0; columnIndex <= maxPosition; columnIndex++) {
@@ -50,7 +53,8 @@ function buildNumberPhases(
   phases.push(new NumberCompletionPhase(
     exerciseNumber,
     targetNumber,
-    maxPosition
+    maxPosition,
+    totalExercises
   ));
 
   return phases;
@@ -64,13 +68,14 @@ class NumberIntroPhase extends PhaseBase {
     private exerciseNumber: number,
     private targetNumber: string,
     private maxPosition: number,
-    stageNumber: number
+    stageNumber: number,
+    private totalExercises: number = 3
   ) {
     super(`number-intro-${stageNumber}-${exerciseNumber}`, `Introduction Exercice ${exerciseNumber}`);
   }
 
   async execute(): Promise<void> {
-    console.log(`🎯 Exercice ${this.exerciseNumber}/3: ${this.targetNumber}`);
+    console.log(`🎯 Exercice ${this.exerciseNumber}/${this.totalExercises}: ${this.targetNumber}`);
 
     const lockCommands = ['LockUnit:', 'LockTen:', 'LockHundred:', 'LockThousand:'];
     for (let i = 0; i < lockCommands.length; i++) {
@@ -83,10 +88,30 @@ class NumberIntroPhase extends PhaseBase {
     console.log('Sending ChangeList ->', this.targetNumber);
     this.sendToUnity('ChangeList', this.targetNumber);
 
-    await this.speak(`Très bien ! Exercice ${this.exerciseNumber}. À toi de former le nombre ${Number(this.targetNumber)}.`);
-    await this.speak(`Je vais te guider colonne par colonne pour y arriver.`);
+    // Vary the introduction based on exercise number to make it more natural
+    const introMessages = [
+      `C'est parti ! Essayons de former le nombre ${Number(this.targetNumber)}.`,
+      `Super ! Maintenant, créons ensemble le nombre ${Number(this.targetNumber)}.`,
+      `Parfait ! À ton tour de faire le nombre ${Number(this.targetNumber)}.`
+    ];
+    
+    const guideMessages = [
+      `Je te guide pas à pas, une colonne après l'autre.`,
+      `Je débloque une colonne à la fois pour t'aider.`,
+      `On y va doucement, colonne par colonne.`
+    ];
+    
+    const introIndex = (this.exerciseNumber - 1) % introMessages.length;
+    const guideIndex = (this.exerciseNumber - 1) % guideMessages.length;
+    
+    await this.speak(introMessages[introIndex]);
+    if (this.exerciseNumber === 1) {
+      // Only explain the guidance on the first exercise
+      await this.speak(guideMessages[guideIndex]);
+    }
+    
     this.updateGameState({
-      message: `Nombre ${this.exerciseNumber}/3 : ${Number(this.targetNumber)}`,
+      message: `Nombre ${this.exerciseNumber}/${this.totalExercises} : ${Number(this.targetNumber)}`,
       targetNumber: this.targetNumber,
       instruction: `Nombre à former : ${Number(this.targetNumber)}. Je vais débloquer les colonnes une par une en commençant par les Unités.`,
       showValidateButton: false
@@ -108,7 +133,8 @@ class NumberCompletionPhase extends PhaseBase {
   constructor(
     private exerciseNumber: number,
     private targetNumber: string,
-    private maxPosition: number
+    private maxPosition: number,
+    private totalExercises: number = 3
   ) {
     super(
       `number-completion-${exerciseNumber}`,
@@ -117,12 +143,20 @@ class NumberCompletionPhase extends PhaseBase {
   }
 
   async execute(): Promise<void> {
-    console.log(`✅ Exercice ${this.exerciseNumber}/3 complété`);
+    console.log(`✅ Exercice ${this.exerciseNumber}/${this.totalExercises} complété`);
 
-    await this.speak('Excellent ! Tu as formé le nombre correctement !');
+    // Vary completion messages to be more natural and encouraging
+    const completionMessages = [
+      'Génial ! Tu as bien réussi !',
+      'Bravo ! C\'est exactement ça !',
+      'Parfait ! Tu as tout compris !'
+    ];
+    
+    const completionIndex = (this.exerciseNumber - 1) % completionMessages.length;
+    await this.speak(completionMessages[completionIndex]);
 
     this.updateGameState({
-      message: `✓ Nombre ${this.exerciseNumber}/3 complété !`,
+      message: `✓ Nombre ${this.exerciseNumber}/${this.totalExercises} complété !`,
       instruction: `Bravo ! Tu as réussi à former le nombre ${Number(this.targetNumber)}.`
     });
 

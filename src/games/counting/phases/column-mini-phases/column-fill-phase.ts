@@ -47,10 +47,24 @@ export class ColumnFillPhase extends PhaseBase {
       this.sendToUnity(cmd, lockValue);
     }
 
-    await this.speak(`C'est le moment de remplir la colonne des ${positionName}.`);
-    //await this.speak(`Seule cette colonne est débloquée pour que tu puisses te concentrer.`);
-    await this.speak(`Pour obtenir le nombre ${Number(this.targetNumber)}, il faut mettre ${targetDigit} dans la colonne des ${positionName}.`);
-    await this.speak(`Utilise les boutons pour y placer ${targetDigit}.`);
+    // Vary the messages to make them more natural and child-friendly
+    const introMessages = [
+      `Maintenant, occupons-nous de la colonne des ${positionName}.`,
+      `C'est au tour de la colonne des ${positionName}.`,
+      `Passons à la colonne des ${positionName}.`
+    ];
+    
+    const instructionMessages = [
+      `Pour faire ${Number(this.targetNumber)}, mets ${targetDigit} ici.`,
+      `Il faut placer ${targetDigit} dans cette colonne pour obtenir ${Number(this.targetNumber)}.`,
+      `Tu dois mettre ${targetDigit} pour arriver à ${Number(this.targetNumber)}.`
+    ];
+    
+    const introIndex = this.columnIndex % introMessages.length;
+    const instructionIndex = this.columnIndex % instructionMessages.length;
+    
+    await this.speak(introMessages[introIndex]);
+    await this.speak(instructionMessages[instructionIndex]);
 
     this.updateGameState({
       message: `Colonne: ${positionName} → ${targetDigit}`,
@@ -107,6 +121,9 @@ export class ColumnFillPhase extends PhaseBase {
 
     if (currentDigit === targetDigit) {
       this.handleColumnCorrect(autoAdvance);
+    } else if (autoAdvance === false && currentDigit !== targetDigit) {
+      // User entered wrong value - provide helpful feedback
+      this.handleCurrentColumnError();
     }
   }
 
@@ -119,6 +136,34 @@ export class ColumnFillPhase extends PhaseBase {
 
     this.updateGameState({
       instruction: `⚠️ Attention : Tu as modifié une colonne précédente (${columnName}). Elle doit rester à ${targetDigit}. Corrige-la avant de continuer.`
+    });
+  }
+
+  private async handleCurrentColumnError(): Promise<void> {
+    const positionName = this.positionNames[this.columnIndex];
+    const targetDigit = this.targetNumber[3 - this.columnIndex];
+    const currentDigit = this.currentValue[3 - this.columnIndex];
+
+    // Provide helpful guidance based on whether to increase or decrease
+    const helpMessages = [
+      `Ce n'est pas tout à fait ça. Pour obtenir ${Number(this.targetNumber)}, tu as besoin de ${targetDigit} dans la colonne des ${positionName}.`,
+      `Pas encore ! Il faut mettre ${targetDigit} dans les ${positionName} pour avoir ${Number(this.targetNumber)}.`,
+      `Oups ! Pour faire ${Number(this.targetNumber)}, tu dois placer ${targetDigit} ici.`
+    ];
+
+    // Choose a message based on column index for variety
+    const messageIndex = this.columnIndex % helpMessages.length;
+    await this.speak(helpMessages[messageIndex]);
+
+    // Give specific direction if needed
+    if (currentDigit < targetDigit) {
+      await this.speak(`Utilise le bouton vert pour augmenter jusqu'à ${targetDigit}.`);
+    } else if (currentDigit > targetDigit) {
+      await this.speak(`Utilise le bouton rouge pour diminuer jusqu'à ${targetDigit}.`);
+    }
+
+    this.updateGameState({
+      instruction: `⚠️ La colonne des ${positionName} doit avoir ${targetDigit}, pas ${currentDigit}. ${currentDigit < targetDigit ? 'Augmente' : 'Diminue'} avec les boutons.`
     });
   }
 
