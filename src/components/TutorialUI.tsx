@@ -6,6 +6,7 @@ interface GameState {
   message?: string;
   progress?: string;
   showValidateButton?: boolean;
+  disableValidateButton?: boolean; // When true, button is shown but blocked with overlay
   showQuitButton?: boolean;
   successCount?: number;
   targetNumber?: string;
@@ -59,6 +60,8 @@ export function TutorialUI() {
         typingTimeoutRef.current = setTimeout(typeNextChar, 18);
       } else {
         setIsTypingInstruction(false);
+        // Emit event when typing completes
+        quizStateManager.emit('instructionTypingComplete', {});
       }
     };
 
@@ -147,34 +150,62 @@ export function TutorialUI() {
             gap: '12px',
             justifyContent: 'center',
             pointerEvents: 'auto',
+            position: 'relative',
           }}
         >
           {gameState.showValidateButton && (
-            <button
-              onClick={handleValidate}
-              style={{
-                padding: '12px 32px',
-                background: 'linear-gradient(to bottom right, #22c55e, #16a34a)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.3)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
-              }}
-            >
-              Cliquez sur Valider
-            </button>
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={handleValidate}
+                style={{
+                  padding: '12px 32px',
+                  background: 'linear-gradient(to bottom right, #22c55e, #16a34a)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  cursor: gameState.disableValidateButton ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  opacity: gameState.disableValidateButton ? 0.6 : 1,
+                }}
+                onMouseEnter={(e) => {
+                  if (!gameState.disableValidateButton) {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.3)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!gameState.disableValidateButton) {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+                  }
+                }}
+                disabled={gameState.disableValidateButton}
+              >
+                Cliquez sur Valider
+              </button>
+              {gameState.disableValidateButton && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                    borderRadius: '8px',
+                    cursor: 'not-allowed',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    pointerEvents: 'auto',
+                  }}
+                  onClick={(e) => e.preventDefault()}
+                />
+              )}
+            </div>
           )}
 
           {gameState.showQuitButton && (

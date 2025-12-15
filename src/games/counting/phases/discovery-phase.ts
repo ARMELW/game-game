@@ -103,7 +103,16 @@ export class DiscoveryPhase extends PhaseBase {
       
       this.updateGameState({
         message: 'Bravo ! Cliquez sur Valider pour continuer',
-        showValidateButton: true
+        showValidateButton: true,
+        disableValidateButton: true, // Block the button initially
+        instruction: 'Bravo ! Tu as complété la première étape. Lis bien ce message, puis clique sur **Valider** pour continuer.'
+      });
+
+      // Listen for instruction typing completion to enable the button
+      this.onEvent('instructionTypingComplete', () => {
+        this.updateGameState({
+          disableValidateButton: false // Enable the button after typing completes
+        });
       });
 
       // Écouter le clic sur le bouton Valider
