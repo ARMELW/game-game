@@ -182,7 +182,6 @@ export function TutorialUI() {
                     e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
                   }
                 }}
-                disabled={gameState.disableValidateButton}
               >
                 Cliquez sur Valider
               </button>
@@ -200,9 +199,7 @@ export function TutorialUI() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    pointerEvents: 'auto',
                   }}
-                  onClick={(e) => e.preventDefault()}
                 />
               )}
             </div>
