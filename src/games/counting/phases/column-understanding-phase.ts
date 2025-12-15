@@ -78,11 +78,12 @@ function buildStagePhases(stage: StageConfig, isLastStage: boolean): PhaseBase[]
   // 2. Introduction du stage
   stagePhases.push(new StageIntroPhase(stage.number, stage.name, stage.description));
 
-  // 3. Exercices (3 par stage)
+  // 3. Exercices (2 pour les unités et millièmes, 3 pour les autres)
+  const exerciseCount = (stage.number === 1 || stage.number === 4) ? 2 : 3;
   const numbers = generateNumbersForStage(stage.number - 1);
-  numbers.slice(0, 3).forEach((value, i) => {
+  numbers.slice(0, exerciseCount).forEach((value, i) => {
     stagePhases.push(
-      new NumberExercisePhase(i + 1, value, stage.maxPosition, stage.number)
+      new NumberExercisePhase(i + 1, value, stage.maxPosition, stage.number, exerciseCount)
     );
   });
 
