@@ -9,6 +9,7 @@ export interface TutorialGameState {
     message: string;
     progress: string;
     showValidateButton: boolean;
+    disableValidateButton?: boolean; // When true, button is shown but blocked with overlay
     showQuitButton: boolean;
     successCount: number;
     targetNumber: string;
